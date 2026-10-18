@@ -4,7 +4,7 @@ Bundle-Name: zjoule
 Bundle-SymbolicName: com.developer.nefarious.zjoule.plugin;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: com.developer.nefarious.zjoule.plugin.core.Activator
-Bundle-Vendor: The Nefarious Developer
+Bundle-Vendor: nickchecan
 Require-Bundle: 
  org.eclipse.ui,
  org.eclipse.core.runtime,

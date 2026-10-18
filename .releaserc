@@ -1,6 +1,6 @@
 {
     "branches": "main",
-    "repositoryUrl": "https://github.com/The-Nefarious-Developer/zjoule",
+    "repositoryUrl": "https://github.com/nickchecan/zjoule",
     "initialReleaseVersion": "v1.0.0",
     "preset": "angular",
     "debug": "false",
