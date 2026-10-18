@@ -1,0 +1,33 @@
+name: UI tests
+
+# Manual only. The default Build, Test and Deploy workflow does not run this job,
+# and this file does not change release gating.
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install the SWT browser libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-0 libgtk-3-0 xvfb
+
+      - name: Run SWTBot tests
+        env:
+          WEBKIT_DISABLE_COMPOSITING_MODE: "1"
+          WEBKIT_DISABLE_DMABUF_RENDERER: "1"
+        run: |
+          xvfb-run -a --server-args="-screen 0 1600x1200x24" \
+            ./mvnw -Pe2e clean verify -pl com.developer.nefarious.zjoule.e2e -am

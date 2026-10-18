@@ -128,4 +128,11 @@
 		</repository>
 	</repositories>
 
+	<!-- Declared here so -Pe2e is a known profile on every module. The reactor module is added by the root pom. -->
+	<profiles>
+		<profile>
+			<id>e2e</id>
+		</profile>
+	</profiles>
+
 </project>

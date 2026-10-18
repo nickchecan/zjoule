@@ -1,4 +1,5 @@
 .DS_Store
 .scannerwork
-docs/
+docs/**
+!docs/e2e-testing.md
 website-repo/

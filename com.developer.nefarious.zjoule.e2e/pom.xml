@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>com.developer.nefarious.zjoule.e2e</artifactId>
+	<name>zjoule - e2e tests</name>
+	<parent>
+		<groupId>com.developer.nefarious.zjoule</groupId>
+		<artifactId>com.developer.nefarious.zjoule.parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../maven/pom.xml</relativePath>
+	</parent>
+
+	<packaging>eclipse-test-plugin</packaging>
+
+	<!--
+		SWTBot 4.3.0 (the releases/latest site as of 2025-06) still requires the
+		split Hamcrest bundles. The 4.4.0 build from 2026-09-08 matches the
+		Eclipse 2026-09 train this reactor resolves from releases/latest.
+		Switch this URL to a release repository when 4.4 is promoted.
+	-->
+	<repositories>
+		<repository>
+			<id>swtbot</id>
+			<url>https://download.eclipse.org/technology/swtbot/snapshots/</url>
+			<layout>p2</layout>
+		</repository>
+	</repositories>
+
+	<properties>
+		<e2e.vmArgs>-Xms256m -Xmx2048m -Dorg.eclipse.swtbot.search.timeout=20000</e2e.vmArgs>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.developer.nefarious.zjoule</groupId>
+			<artifactId>com.developer.nefarious.zjoule.plugin</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<dependency-resolution>
+						<extraRequirements>
+							<!-- Defines the org.eclipse.platform.ide product the UI harness launches. -->
+							<requirement>
+								<type>eclipse-plugin</type>
+								<id>org.eclipse.platform</id>
+								<versionRange>0.0.0</versionRange>
+							</requirement>
+						</extraRequirements>
+					</dependency-resolution>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<useUIHarness>true</useUIHarness>
+					<useUIThread>false</useUIThread>
+					<product>org.eclipse.platform.ide</product>
+					<application>org.eclipse.ui.ide.workbench</application>
+					<!-- SWTBot pulls JUnit 4, which would otherwise win auto-detection. Eclipse 2026-09 resolves junit-jupiter 6. -->
+					<providerHint>junit6</providerHint>
+					<failIfNoTests>true</failIfNoTests>
+					<argLine>${e2e.vmArgs}</argLine>
+					<appArgLine>-pluginCustomization ${project.basedir}/plugin_customization.ini -consoleLog</appArgLine>
+					<environmentVariables>
+						<WEBKIT_DISABLE_COMPOSITING_MODE>1</WEBKIT_DISABLE_COMPOSITING_MODE>
+						<WEBKIT_DISABLE_DMABUF_RENDERER>1</WEBKIT_DISABLE_DMABUF_RENDERER>
+					</environmentVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>mac-e2e</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<!-- Cocoa SWT requires the UI thread to be the process main thread. -->
+				<e2e.vmArgs>-XstartOnFirstThread -Xms256m -Xmx2048m -Dorg.eclipse.swtbot.search.timeout=20000</e2e.vmArgs>
+			</properties>
+		</profile>
+	</profiles>
+
+</project>

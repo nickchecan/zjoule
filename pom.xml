@@ -19,5 +19,15 @@
 		<module>com.developer.nefarious.zjoule.feature</module>
 		<module>com.developer.nefarious.zjoule.updatesite</module>
 	</modules>
-	
+
+	<!-- UI tests boot a workbench. Keep them out of the default reactor. -->
+	<profiles>
+		<profile>
+			<id>e2e</id>
+			<modules>
+				<module>com.developer.nefarious.zjoule.e2e</module>
+			</modules>
+		</profile>
+	</profiles>
+
 </project>
