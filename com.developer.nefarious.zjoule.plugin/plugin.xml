@@ -10,6 +10,7 @@
       <view
             id="com.developer.nefarious.zjoule.plugin.core.ui.ViewListener"
             name="zjoule"
+            icon="resources/icons/zjoule.png"
             class="com.developer.nefarious.zjoule.plugin.core.ui.ViewListener"
             category="com.developer.nefarious.zjoule.plugin"
             inject="true">

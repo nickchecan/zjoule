@@ -97,6 +97,7 @@ public class ViewRenderTest {
 		String returnValue = cut.build();
 
 		// Assert
+		assertTrue(returnValue.contains("<title>zJoule</title>"));
 		assertTrue(returnValue.contains(expectedMarkedReference));
 		assertTrue(returnValue.contains(expectedScriptsReference));
 		assertTrue(returnValue.contains(expectedStylesReference));

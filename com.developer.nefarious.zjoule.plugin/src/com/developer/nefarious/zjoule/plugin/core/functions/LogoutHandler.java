@@ -24,7 +24,7 @@ import com.developer.nefarious.zjoule.plugin.memory.EclipseMemory;
 public class LogoutHandler extends Action {
 
     /** Path to the icon used for the "Logout" action. */
-    private static final String ICON = "platform:/plugin/org.eclipse.wst.wsdl.ui/org/eclipse/wst/wsdl/ui/internal/icons/output_obj.gif";
+    private static final String ICON = "platform:/plugin/org.eclipse.ui.workbench.texteditor/icons/full/elcl16/delete_template.png";
 
     /** The {@link Browser} instance associated with the logout action. */
     private Browser browser;
