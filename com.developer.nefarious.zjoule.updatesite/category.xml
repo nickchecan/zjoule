@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.developer.nefarious.zjoule_2.0.2.jar" id="com.developer.nefarious.zjoule" version="2.0.2">
+   <feature url="features/com.developer.nefarious.zjoule_1.0.0.jar" id="com.developer.nefarious.zjoule" version="1.0.0">
       <category name="com.developer.nefarious.zjoule.group"/>
    </feature>
-   <category-def name="com.developer.nefarious.zjoule.group" label="The Nefarious Developer - zJoule">
+   <category-def name="com.developer.nefarious.zjoule.group" label="nickchecan - zJoule">
       <description>
          Provides an AI-powered assistant for Eclipse, leveraging SAP AI Core to enhance development productivity.
       </description>

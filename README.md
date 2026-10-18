@@ -4,9 +4,9 @@
 
 <div align="center">
 
-[![Latest Test](https://github.com/The-Nefarious-Developer/zjoule/actions/workflows/main.yaml/badge.svg)](https://github.com/The-Nefarious-Developer/zjoule/actions/workflows/main.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=The-Nefarious-Developer_zjoule&metric=alert_status&token=e2a58dc0706342532d8d14ae0badfe72fd08ff28)](https://sonarcloud.io/summary/new_code?id=The-Nefarious-Developer_zjoule) 
-[![CodeQL](https://github.com/The-Nefarious-Developer/zjoule/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/The-Nefarious-Developer/zjoule/actions/workflows/github-code-scanning/codeql)
+[![Latest Test](https://github.com/nickchecan/zjoule/actions/workflows/main.yaml/badge.svg)](https://github.com/nickchecan/zjoule/actions/workflows/main.yaml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nickchecan_zjoule&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nickchecan_zjoule)
+[![CodeQL](https://github.com/nickchecan/zjoule/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/nickchecan/zjoule/actions/workflows/github-code-scanning/codeql)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://zjoule.com/v2.0.2/doc/)
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
@@ -190,7 +190,7 @@ Logging out will erase the chat history and any login data used during the LLM c
 
 Contributions are welcome! Here's how you can get involved:
 
-1. **Report Issues:** Found a bug or have a feature request? [Open an issue](https://github.com/The-Nefarious-Developer/zjoule/issues). <br />
+1. **Report Issues:** Found a bug or have a feature request? [Open an issue](https://github.com/nickchecan/zjoule/issues). <br />
 2. **Submit Pull Requests:** Fork the repository, create a new branch, make your changes, and submit a PR. <br />
 3. **Improve Documentation:** Help us improve the README or add examples to make setup easier. <br />
 4. **Test & Feedback:** Try this Eclipse AI Assistant and give us feedback to improve them.
@@ -205,7 +205,7 @@ Please follow the [contribution guidelines](CONTRIBUTING.md) for more details.
 
 [The spinner "Ellipsis" is provided by loading.io](https://loading.io/icon/)
 
-[zJoule - ABAP Copilot website repository](https://github.com/The-Nefarious-Developer/zjoule-website)
+[zJoule - ABAP Copilot website repository](https://github.com/nickchecan/zjoule-website)
 
 [zJoule - ABAP Copilot website](https://zjoule.com)
 

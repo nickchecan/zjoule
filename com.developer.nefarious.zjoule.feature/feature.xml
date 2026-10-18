@@ -2,8 +2,8 @@
 <feature
       id="com.developer.nefarious.zjoule"
       label="zJoule - SAP AI Assistant"
-      version="2.0.2"
-      provider-name="The Nefarious Developer">
+      version="1.0.0"
+      provider-name="nickchecan">
 
    <description>
       zJoule - AI Assistant for Eclipse - Powered by SAP AI Core Generative AI Hub
@@ -70,7 +70,7 @@ SOFTWARE.
    </license>
 
    <url>
-      <discovery label="zJoule Project Repository" url="https://github.com/The-Nefarious-Developer/zjoule"/>
+      <discovery label="zJoule Project Repository" url="https://github.com/nickchecan/zjoule"/>
    </url>
 
    <plugin

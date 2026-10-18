@@ -6,8 +6,6 @@
 
 	<artifactId>com.developer.nefarious.zjoule</artifactId>
 	<name>zjoule - feature</name>
-	<version>2.0.2</version>
-
 	<parent>
 		<groupId>com.developer.nefarious.zjoule</groupId>
 		<artifactId>com.developer.nefarious.zjoule.parent</artifactId>
