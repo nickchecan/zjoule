@@ -24,6 +24,7 @@
 - [Motivation](#motivation)
 - [Getting Started](#getting-started)
 - [Demo](#demo)
+- [UI tests](#ui-tests)
 - [How to Contribute](#how-to-contribute)
 - [References](#reference)
 - [License](#license)
@@ -145,6 +146,10 @@ As the chat progresses, additional information will be collected and shared with
 ### Logout from the current SAP AI Core instance.
 
 Logging out will erase the chat history and any login data used during the LLM communication process, enabling users to establish new connections entirely independent of previous interactions.
+
+## UI tests
+
+End-to-end coverage of the chat view, the login wizard, and the preference page lives in `com.developer.nefarious.zjoule.e2e`. It is not part of `./mvnw clean verify`. Run it with the `e2e` profile. The maintainer notes, including macOS and running the suite from inside Eclipse, are in [docs/e2e-testing.md](docs/e2e-testing.md).
 
 ## How to Contribute
 
