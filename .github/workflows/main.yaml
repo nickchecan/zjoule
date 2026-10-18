@@ -36,7 +36,10 @@ jobs:
 
   release:
     needs: test
-    if: "!contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
+    # Releases are off. To turn them on, set the repository variable RELEASE_ENABLED
+    # to the string true: Settings → Secrets and variables → Actions → Variables.
+    # Delete that variable (or set it to anything other than true) to turn releases off again.
+    if: "vars.RELEASE_ENABLED == 'true' && !contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
     runs-on: ubuntu-latest
     steps:
 
@@ -77,7 +80,8 @@ jobs:
 
   update-website:
     needs: release
-    if: "!contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
+    # Same switch as the release job. Skipped while RELEASE_ENABLED is not true.
+    if: "vars.RELEASE_ENABLED == 'true' && !contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
     runs-on: ubuntu-latest
     env:
       # PAT for nickchecan/zjoule-website. This job succeeds without it so a
