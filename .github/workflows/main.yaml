@@ -62,10 +62,11 @@ jobs:
           node-version: 22
 
       - name: Install semantic-release
-        # Pinned to the release that already prepared v1.0.0. An unpinned
-        # install on Node 22 resolves semantic-release 25 and changes the releaser.
+        # One node_modules so semantic-release 22.0.12 can resolve the pinned
+        # plugins beside it. `npx semantic-release` ignores a global pin and
+        # downloads 25.x, which then fails to find @semantic-release/changelog.
         run: |
-          npm install -g \
+          npm install --prefix "$RUNNER_TEMP/semantic-release" --no-fund --no-audit \
             semantic-release@22.0.12 \
             @semantic-release/changelog@6.0.3 \
             @semantic-release/commit-analyzer@11.1.0 \
@@ -76,7 +77,9 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: chmod +x ./scripts/prepare-release.sh && npx semantic-release
+        run: |
+          chmod +x ./scripts/prepare-release.sh
+          "$RUNNER_TEMP/semantic-release/node_modules/.bin/semantic-release"
 
   update-website:
     needs: release
@@ -98,7 +101,7 @@ jobs:
         run: |
           if [ -z "${GH_TOKEN}" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Website update skipped::ZJOULE_WEBSITE_TOKEN is not set. The plugin release is unaffected. Add a fine-grained personal access token with Contents and Pull requests write on ${WEBSITE_REPOSITORY}."
+            echo "::notice title=Website update skipped::ZJOULE_WEBSITE_TOKEN is not set. The plugin release is unaffected. Add a fine-grained PAT for ${WEBSITE_REPOSITORY} with Contents read and write, Pull requests read and write, and Administration. Administration is required because this job runs 'gh pr merge --admin', which only succeeds for an admin of that repository."
             exit 0
           fi
           if ! gh repo view "${WEBSITE_REPOSITORY}" --json name >/dev/null 2>&1; then
@@ -148,20 +151,27 @@ jobs:
           ../scripts/update-website.sh "${LATEST_TAG}"
 
       - name: Commit the changes
+        id: commit
         if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
         run: |
           git add .
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Website update skipped::No website files changed for ${LATEST_TAG}."
+            exit 0
+          fi
           git commit -m "feat: update to ${LATEST_TAG}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Push the changes
-        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true' && steps.commit.outputs.changed == 'true'
         working-directory: website-repo
         run: |
           git push origin "update-to-${LATEST_TAG}"
 
       - name: Create a pull request
-        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true' && steps.commit.outputs.changed == 'true'
         working-directory: website-repo
         env:
           GH_TOKEN: ${{ secrets.ZJOULE_WEBSITE_TOKEN }}
@@ -174,7 +184,7 @@ jobs:
             --base main
 
       - name: Automatically merge the pull request
-        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true' && steps.commit.outputs.changed == 'true'
         working-directory: website-repo
         env:
           GH_TOKEN: ${{ secrets.ZJOULE_WEBSITE_TOKEN }}
