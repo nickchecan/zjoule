@@ -14,14 +14,14 @@
 	<name>zjoule</name>
 
 	<organization>
-		<name>Nicholas Coutinho Checan - The Nefarious Developer</name>
-		<url>https://github.com/The-Nefarious-Developer</url>
+		<name>Nicholas Coutinho Checan</name>
+		<url>https://github.com/nickchecan/zjoule</url>
 	</organization>
 
 	<properties>
 		<tycho-version>5.0.4</tycho-version>
 		<build.qualifier></build.qualifier>
-		<sonar.organization>the-nefarious-developer</sonar.organization>
+		<sonar.organization>nickchecan</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
