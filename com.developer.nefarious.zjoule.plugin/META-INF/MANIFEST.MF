@@ -5,6 +5,8 @@ Bundle-SymbolicName: com.developer.nefarious.zjoule.plugin;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: com.developer.nefarious.zjoule.plugin.core.Activator
 Bundle-Vendor: nickchecan
+Bundle-Icon: resources/icons/zjoule.png;size=16,
+ resources/icons/zjoule@2x.png;size=32
 Require-Bundle: 
  org.eclipse.ui,
  org.eclipse.core.runtime,

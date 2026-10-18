@@ -1,5 +1,5 @@
 <h1 align="center">
-<img src="assets/zjoule-icon.png" alt="Intro GIF" width="25"/> zjoule
+<img src="assets/zjoule-icon.png" alt="zJoule" width="25"/> zjoule
 </h1>
 
 <div align="center">
@@ -108,45 +108,21 @@ All from the cozy confines of your Eclipse ADT =)
 
 2. If the plugin view is not currently open in your Eclipse Editor, go to `Window > Show View > Other..` and search for **zJoule** inside the **ABAP Copilot** folder.
 
-<div align="center">
-  <img src="assets/view.png" alt="Intro GIF" width="200"/>
-</div>
-
 3. Click on the authentication button (lock icon) at the top of the view and select the AI provider you want to work with.
-
-<div align="center">
-  <img src="assets/login_0.png" alt="Intro GIF" width="400"/>
-</div>
 
 ### Connecting to an Ollama local installation
 
 4. Enter the localhost and port where your Ollama instance is available.
 
-<div align="center">
-  <img src="assets/login_ollama_1.png" alt="Intro GIF" width="400"/>
-</div>
-
 5. Select the model you have installed and want to work with.
-
-<div align="center">
-  <img src="assets/login_ollama_2.png" alt="Intro GIF" width="400"/>
-</div>
 
 ### Connecting to an SAP AI Core instance
 
 4. Login using your SAP AI Core `Service Key`.
 
-<div align="center">
-  <img src="assets/login_sap_1.png" alt="Intro GIF" width="400"/>
-</div>
-
 You can find it in the *Instances an Subscriptions* area of your SAP BTP subaccount.
 
 5. Select the `resource group` and the `deployment` model you want to use.
-
-<div align="center">
-  <img src="assets/login_sap_2.png" alt="Intro GIF" width="400"/>
-</div>
 
 Resource Groups are essentially a project workspace in the context of SAP AI Core, and contains all components a specific ML or AI solution might use to attend a specific requirement. [More Information](https://help.sap.com/docs/sap-ai-core/sap-ai-core-service-guide/resource-groups?q=resource+groups).
 
@@ -156,33 +132,17 @@ Deployment is the component that will enable a LLM to be consumed. [More Informa
 
 ### Asking for code samples.
 
-<div align="center">
-  <img src="assets/demo_sample.gif" alt="Intro GIF" width="200"/>
-</div>
-
 zJoule offers code snippets and on-the-go assistance, helping you learn or recall information without ever leaving your development environment.
 
 ### Requesting context information.
-
-<div align="center">
-  <img src="assets/demo_context.gif" alt="Intro GIF" width="800"/>
-</div>
 
 When the user opens a new component, such as a class or a CDS view, zJoule will retrieve its content and include it as context for the user prompt. A small tag will appear above the input box, indicating the content being used as context.
 
 ### Clean up chat history.
 
-<div align="center">
-  <img src="assets/demo_memory.gif" alt="Intro GIF" width="200"/>
-</div>
-
 As the chat progresses, additional information will be collected and shared with the AI assistant to enhance personalization. However, the user can clear the chat history at any time if the accumulated messages are no longer relevant to the conversation.
 
 ### Logout from the current SAP AI Core instance.
-
-<div align="center">
-  <img src="assets/demo_logout.gif" alt="Intro GIF" width="200"/>
-</div>
 
 Logging out will erase the chat history and any login data used during the LLM communication process, enabling users to establish new connections entirely independent of previous interactions.
 
