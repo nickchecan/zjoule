@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  # semantic-release comments on released issues after it publishes.
+  issues: write
   pull-requests: write
 
 jobs:
@@ -20,10 +22,10 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -37,34 +39,40 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
     runs-on: ubuntu-latest
     steps:
-    
+
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
+        with:
+          # semantic-release needs tags and history to find the last release.
+          fetch-depth: 0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
       - name: Setup Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Install semantic-release
+        # Pinned to the release that already prepared v1.0.0. An unpinned
+        # install on Node 22 resolves semantic-release 25 and changes the releaser.
         run: |
-          npm install -g semantic-release \
-            @semantic-release/changelog \
-            @semantic-release/commit-analyzer \
-            @semantic-release/exec \
-            @semantic-release/git \
-            @semantic-release/release-notes-generator
+          npm install -g \
+            semantic-release@22.0.12 \
+            @semantic-release/changelog@6.0.3 \
+            @semantic-release/commit-analyzer@11.1.0 \
+            @semantic-release/exec@6.0.3 \
+            @semantic-release/git@10.0.1 \
+            @semantic-release/release-notes-generator@12.1.0
 
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.NEFARIOUS_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: chmod +x ./scripts/prepare-release.sh && npx semantic-release
 
   update-website:
@@ -72,60 +80,99 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && github.ref == 'refs/heads/main'"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.NEFARIOUS_GITHUB_TOKEN }}
+      # PAT for nickchecan/zjoule-website. This job succeeds without it so a
+      # missing website repo cannot fail the plugin release.
+      GH_TOKEN: ${{ secrets.ZJOULE_WEBSITE_TOKEN }}
+      WEBSITE_REPOSITORY: nickchecan/zjoule-website
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
+
+      - name: Check website publishing configuration
+        id: website
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Website update skipped::ZJOULE_WEBSITE_TOKEN is not set. The plugin release is unaffected. Add a fine-grained personal access token with Contents and Pull requests write on ${WEBSITE_REPOSITORY}."
+            exit 0
+          fi
+          if ! gh repo view "${WEBSITE_REPOSITORY}" --json name >/dev/null 2>&1; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Website update skipped::${WEBSITE_REPOSITORY} is not reachable with ZJOULE_WEBSITE_TOKEN. The plugin release is unaffected."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Get the latest release tag
         id: get_release
+        if: steps.website.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST_TAG=$(gh release view --json tagName -q ".tagName")
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          if ! LATEST_TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q ".tagName"); then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Website update skipped::No GitHub release exists on ${{ github.repository }} yet."
+            exit 0
+          fi
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "LATEST_TAG=${LATEST_TAG}" >> "$GITHUB_ENV"
 
       - name: Configure Git
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         run: |
-          git config --global user.name "nefarious-developer-bot"
-          git config --global user.email "nefarious-developer-bot@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
 
-      - name: Clone the target repository
+      - name: Clone the website repository
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         run: |
-          git clone https://nefarious-developer-bot:${GH_TOKEN}@github.com/The-Nefarious-Developer/zjoule-website.git website-repo
+          git clone "https://github.com/${WEBSITE_REPOSITORY}.git" website-repo
 
       - name: Create a new branch
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
         run: |
-          git checkout -b update-to-$LATEST_TAG
+          git checkout -b "update-to-${LATEST_TAG}"
 
       - name: Run the script to update the website
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
         run: |
           chmod +x ../scripts/update-website.sh
-          ../scripts/update-website.sh $LATEST_TAG
+          ../scripts/update-website.sh "${LATEST_TAG}"
 
       - name: Commit the changes
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
         run: |
           git add .
-          git commit -m "feat: update to $LATEST_TAG"
-      
+          git commit -m "feat: update to ${LATEST_TAG}"
+
       - name: Push the changes
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
         run: |
-          git push https://nefarious-developer-bot:${GH_TOKEN}@github.com/The-Nefarious-Developer/zjoule-website.git update-to-$LATEST_TAG
+          git push origin "update-to-${LATEST_TAG}"
 
       - name: Create a pull request
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
+        env:
+          GH_TOKEN: ${{ secrets.ZJOULE_WEBSITE_TOKEN }}
         run: |
           gh pr create \
-            --title "Update to $LATEST_TAG" \
-            --body "This PR updates the website to the latest release $LATEST_TAG." \
-            --head update-to-$LATEST_TAG \
+            --repo "${WEBSITE_REPOSITORY}" \
+            --title "Update to ${LATEST_TAG}" \
+            --body "This PR updates the website to the latest release ${LATEST_TAG}." \
+            --head "update-to-${LATEST_TAG}" \
             --base main
 
       - name: Automatically merge the pull request
+        if: steps.website.outputs.ready == 'true' && steps.get_release.outputs.found == 'true'
         working-directory: website-repo
+        env:
+          GH_TOKEN: ${{ secrets.ZJOULE_WEBSITE_TOKEN }}
         run: |
-          PR_URL=$(gh pr view update-to-$LATEST_TAG --json url -q ".url")
-          gh pr merge $PR_URL --squash --admin --delete-branch
+          gh pr merge "update-to-${LATEST_TAG}" --repo "${WEBSITE_REPOSITORY}" --squash --admin --delete-branch

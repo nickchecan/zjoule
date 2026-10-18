@@ -37,12 +37,12 @@ echo "Setup of the page for version $LATEST_VERSION is complete."
 mkdir -p docs/$LATEST_VERSION
 
 # Download the latest version of the documentation
-wget -O docs/$LATEST_VERSION/doc.zip https://github.com/The-Nefarious-Developer/zjoule/releases/download/$LATEST_VERSION/doc.zip
+wget -O docs/$LATEST_VERSION/doc.zip https://github.com/nickchecan/zjoule/releases/download/$LATEST_VERSION/doc.zip
 unzip -o docs/$LATEST_VERSION/doc.zip -d docs/$LATEST_VERSION/doc && rm docs/$LATEST_VERSION/doc.zip
 echo "Setup of the Javadoc for version $LATEST_VERSION is complete."
 
 # Download the latest version of the plugin
-wget -O docs/$LATEST_VERSION/plugin.zip https://github.com/The-Nefarious-Developer/zjoule/releases/download/$LATEST_VERSION/plugin.zip
+wget -O docs/$LATEST_VERSION/plugin.zip https://github.com/nickchecan/zjoule/releases/download/$LATEST_VERSION/plugin.zip
 unzip -o docs/$LATEST_VERSION/plugin.zip -d docs/$LATEST_VERSION/plugin && rm docs/$LATEST_VERSION/plugin.zip
 echo "Setup of the plugin for version $LATEST_VERSION is complete."
 
