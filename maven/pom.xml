@@ -19,7 +19,7 @@
 	</organization>
 
 	<properties>
-		<tycho-version>4.0.9</tycho-version>
+		<tycho-version>5.0.4</tycho-version>
 		<build.qualifier></build.qualifier>
 		<sonar.organization>the-nefarious-developer</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
