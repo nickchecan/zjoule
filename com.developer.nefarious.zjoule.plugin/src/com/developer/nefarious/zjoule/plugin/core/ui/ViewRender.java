@@ -52,7 +52,7 @@ public class ViewRender implements IViewRender {
         buffer.append("<head>");
         buffer.append("<meta charset=\"utf-8\">");
         buffer.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-        buffer.append("<title>Sample View</title>");
+        buffer.append("<title>zJoule</title>");
         buffer.append("<style>" + css + "</style>");
         buffer.append("<script>" + marked + "</script>");
         buffer.append("<script>" + js + "</script>");
