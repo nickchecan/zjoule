@@ -13,7 +13,10 @@ Require-Bundle:
  org.eclipse.core.resources;bundle-version="3.21.0",
  org.eclipse.ui.ide;bundle-version="3.22.300",
  org.eclipse.jface,
- org.eclipse.swt
+ org.eclipse.swt,
+ com.developer.nefarious.zjoule.libs,
+ org.eclipse.equinox.security,
+ org.eclipse.core.jobs
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: com.developer.nefarious.zjoule.plugin
 Import-Package: 
@@ -22,12 +25,10 @@ Import-Package:
  jakarta.inject;version="[2.0.0,3.0.0)"
 Bundle-ActivationPolicy: lazy
 Export-Package: 
+ com.developer.nefarious.zjoule.plugin.agent,
+ com.developer.nefarious.zjoule.plugin.agent.model,
+ com.developer.nefarious.zjoule.plugin.agent.persistence,
  com.developer.nefarious.zjoule.plugin.auth,
- com.developer.nefarious.zjoule.plugin.chat,
- com.developer.nefarious.zjoule.plugin.chat.memory,
- com.developer.nefarious.zjoule.plugin.chat.models,
- com.developer.nefarious.zjoule.plugin.chat.ollama,
- com.developer.nefarious.zjoule.plugin.chat.openai,
  com.developer.nefarious.zjoule.plugin.chat.utils,
  com.developer.nefarious.zjoule.plugin.core,
  com.developer.nefarious.zjoule.plugin.core.events,

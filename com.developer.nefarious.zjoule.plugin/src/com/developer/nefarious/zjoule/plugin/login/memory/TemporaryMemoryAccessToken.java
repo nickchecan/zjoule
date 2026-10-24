@@ -1,31 +1,23 @@
 package com.developer.nefarious.zjoule.plugin.login.memory;
 
-import com.developer.nefarious.zjoule.plugin.memory.IEclipseMemory;
 import com.developer.nefarious.zjoule.plugin.memory.IMemoryObject;
-import com.developer.nefarious.zjoule.plugin.memory.MemoryAccessToken;
-import com.developer.nefarious.zjoule.plugin.memory.utils.IObjectSerializer;
+import com.developer.nefarious.zjoule.plugin.memory.LegacySecretCleaner;
 import com.developer.nefarious.zjoule.plugin.models.AccessToken;
 
 /**
- * Manages temporary storage and retrieval of an access token during the login process.
- * <p>
- * The {@code TemporaryMemoryAccessToken} class provides methods to save, load, and persist
- * temporary access tokens using Eclipse preferences. It implements {@link IMemoryObject<AccessToken>}
- * and {@link ITemporaryMemoryObject}.
+ * Holds an access token in memory during the login wizard.
+ * {@link #persist()} drops it. Tokens are not written to preferences.
  */
 public class TemporaryMemoryAccessToken implements IMemoryObject<AccessToken>, ITemporaryMemoryObject {
 
     /** Singleton instance of {@code TemporaryMemoryAccessToken}. */
     private static TemporaryMemoryAccessToken instance;
 
-    /** Key used for storing and retrieving the temporary access token in Eclipse preferences. */
-    public static final String KEY = "tmp-" + MemoryAccessToken.KEY;
+    /** Legacy preference key. No longer written. */
+    public static final String KEY = LegacySecretCleaner.TEMP_ACCESS_TOKEN;
 
-    /** Serializer for converting objects to and from serialized formats. */
-    private IObjectSerializer objectSerializer;
-
-    /** Manages interactions with Eclipse's preferences storage. */
-    private IEclipseMemory eclipseMemory;
+    /** Wizard value. Never flushed to preferences or secure storage. */
+    private AccessToken current;
 
     /**
      * Retrieves the singleton instance of {@code TemporaryMemoryAccessToken}.
@@ -41,14 +33,11 @@ public class TemporaryMemoryAccessToken implements IMemoryObject<AccessToken>, I
     }
 
     /**
-     * Initializes the {@code TemporaryMemoryAccessToken} singleton with the specified dependencies.
-     *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
+     * Initializes the singleton. No preference store is required.
      */
-    public static void initialize(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
+    public static void initialize() {
         if (instance == null) {
-            instance = new TemporaryMemoryAccessToken(objectSerializer, eclipseMemory);
+            instance = new TemporaryMemoryAccessToken();
         }
     }
 
@@ -61,13 +50,8 @@ public class TemporaryMemoryAccessToken implements IMemoryObject<AccessToken>, I
 
     /**
      * Private constructor to enforce singleton behavior.
-     *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
      */
-    private TemporaryMemoryAccessToken(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
-        this.objectSerializer = objectSerializer;
-        this.eclipseMemory = eclipseMemory;
+    private TemporaryMemoryAccessToken() {
     }
 
     /**
@@ -88,21 +72,15 @@ public class TemporaryMemoryAccessToken implements IMemoryObject<AccessToken>, I
      */
     @Override
     public AccessToken load() {
-        try {
-            String serializedObject = eclipseMemory.loadFromEclipsePreferences(KEY);
-            return objectSerializer.deserialize(serializedObject, AccessToken.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return current;
     }
 
     /**
-     * {@inheritDoc}
+     * Drops the wizard token. Nothing is written to disk.
      */
     @Override
     public void persist() {
-        String serializedObject = eclipseMemory.loadFromEclipsePreferences(KEY);
-        eclipseMemory.saveOnEclipsePreferences(MemoryAccessToken.KEY, serializedObject);
+        current = null;
     }
 
     /**
@@ -110,13 +88,14 @@ public class TemporaryMemoryAccessToken implements IMemoryObject<AccessToken>, I
      */
     @Override
     public void save(final AccessToken accessToken) {
-        String serializedObject = objectSerializer.serialize(accessToken);
-        eclipseMemory.saveOnEclipsePreferences(KEY, serializedObject);
+        current = accessToken;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clear() {
-    	eclipseMemory.deleteFromEclipsePreferences(KEY);
+        current = null;
     }
-    
 }

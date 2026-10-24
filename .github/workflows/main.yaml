@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'com.developer.nefarious.zjoule.feature/**'
+      - 'com.developer.nefarious.zjoule.libs/**'
       - 'com.developer.nefarious.zjoule.plugin/**'
       - 'com.developer.nefarious.zjoule.test/**'
       - 'com.developer.nefarious.zjoule.updatesite/**'

@@ -25,7 +25,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.developer.nefarious.zjoule.plugin.auth.AuthClient;
 import com.developer.nefarious.zjoule.plugin.auth.AuthClientHelper;
-import com.developer.nefarious.zjoule.plugin.memory.MemoryAccessToken;
+import com.developer.nefarious.zjoule.plugin.memory.IMemoryObject;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryServiceKey;
 import com.developer.nefarious.zjoule.plugin.models.AccessToken;
 import com.developer.nefarious.zjoule.plugin.models.ServiceKey;
@@ -45,7 +45,7 @@ public class AuthClientTest {
 	private AuthClientHelper mockAuthClientHelper;
 
 	@Mock
-	private MemoryAccessToken mockMemoryAccessToken;
+	private IMemoryObject<AccessToken> mockMemoryAccessToken;
 
 	@Mock
 	private MemoryServiceKey mockMemoryServiceKey;

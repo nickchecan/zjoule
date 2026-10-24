@@ -74,6 +74,13 @@ SOFTWARE.
    </url>
 
    <plugin
+         id="com.developer.nefarious.zjoule.libs"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="true"/>
+
+   <plugin
          id="com.developer.nefarious.zjoule.plugin"
          download-size="0"
          install-size="0"

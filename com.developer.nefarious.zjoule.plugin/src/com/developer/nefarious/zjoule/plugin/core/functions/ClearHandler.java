@@ -12,7 +12,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
 import com.developer.nefarious.zjoule.plugin.auth.SessionManager;
-import com.developer.nefarious.zjoule.plugin.chat.memory.MemoryMessageHistory;
+import com.developer.nefarious.zjoule.plugin.core.Activator;
 
 /**
  * Handles the "Clear Chat" action in the application.
@@ -46,24 +46,23 @@ public class ClearHandler extends Action {
     private ClearHandler(final Browser browser) {
         this.browser = browser;
 
-        setText("Clear Chat");
-        setToolTipText("Clear message history.");
+        setText("New chat");
+        setToolTipText("Start a new chat. Previous chats are kept.");
         setIcon();
     }
 
     /**
      * Executes the "Clear Chat" action.
      * <p>
-     * If the user is logged in, this method clears the chat message history stored in
-     * {@link MemoryMessageHistory} and resets the browser state by executing the
-     * {@code clearMessages()} JavaScript function.
+     * If the user is logged in, this method starts an empty session and resets the
+     * browser. Previous session files are kept.
      */
     @Override
     public void run() {
         if (SessionManager.isUserLoggedIn()) {
-            MemoryMessageHistory memoryMessageHistory = MemoryMessageHistory.getInstance();
-            memoryMessageHistory.clear();
+            Activator.getDefault().chatSessions().newSession();
             browser.execute("clearMessages();");
+            browser.execute("updatePlaceholder();");
         }
     }
 

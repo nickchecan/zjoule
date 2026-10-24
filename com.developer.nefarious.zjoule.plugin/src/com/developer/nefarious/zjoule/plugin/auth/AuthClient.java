@@ -70,24 +70,37 @@ public class AuthClient implements IAuthClient {
      */
     @Override
     public String getNewAccessToken(final ServiceKey serviceKey) throws IOException, InterruptedException {
-        HttpClient httpClient = HttpClient.newHttpClient();
+        AccessToken newAccessToken = requestAccessToken(serviceKey);
+        memoryAccessToken.save(newAccessToken);
+        memoryServiceKey.save(serviceKey);
+        return newAccessToken.getAccessToken();
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AccessToken requestAccessToken(final ServiceKey serviceKey) throws IOException, InterruptedException {
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(tokenRequest(serviceKey), HttpResponse.BodyHandlers.ofString());
+        return authClientHelper.convertResponseToObject(response.body());
+    }
+
+    /**
+     * Builds the client-credentials request.
+     *
+     * @param serviceKey the service key.
+     * @return the HTTP request.
+     */
+    private HttpRequest tokenRequest(final ServiceKey serviceKey) {
         URI endpoint = authClientHelper.convertEndpointStringToURI(serviceKey.getTokenURL());
-        BodyPublisher requestBody = authClientHelper.createRequestBody(serviceKey.getClientId(), serviceKey.getClientSecret());
-
-        HttpRequest request = HttpRequest.newBuilder()
+        BodyPublisher requestBody = authClientHelper.createRequestBody(serviceKey.getClientId(),
+                serviceKey.getClientSecret());
+        return HttpRequest.newBuilder()
                 .uri(endpoint)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(requestBody)
                 .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        AccessToken newAccessToken = authClientHelper.convertResponseToObject(response.body());
-        memoryAccessToken.save(newAccessToken);
-        memoryServiceKey.save(serviceKey);
-
-        return newAccessToken.getAccessToken();
     }
 
     /**

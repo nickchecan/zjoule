@@ -1,15 +1,23 @@
 package com.developer.nefarious.zjoule.plugin.auth;
 
+import java.util.Optional;
+
 import org.eclipse.swt.browser.Browser;
 
+import com.developer.nefarious.zjoule.plugin.agent.ChatSessionService;
+import com.developer.nefarious.zjoule.plugin.agent.model.AiCoreTokenProvider;
+import com.developer.nefarious.zjoule.plugin.agent.persistence.PreferenceActiveSessionStore;
+import com.developer.nefarious.zjoule.plugin.agent.persistence.SessionInfo;
+import com.developer.nefarious.zjoule.plugin.core.Activator;
+import com.developer.nefarious.zjoule.plugin.core.functions.BrowserStreamBridge;
 import com.developer.nefarious.zjoule.plugin.core.functions.TagHandler;
 import com.developer.nefarious.zjoule.plugin.memory.EclipseMemory;
-import com.developer.nefarious.zjoule.plugin.memory.MemoryAccessToken;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryDeployment;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryOllamaEndpoint;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryOllamaModel;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryResourceGroup;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryServiceKey;
+import com.google.gson.Gson;
 
 /**
  * Manages the user's session within the application.
@@ -19,14 +27,13 @@ import com.developer.nefarious.zjoule.plugin.memory.MemoryServiceKey;
  */
 public abstract class SessionManager {
 
-
 	/**
      * Checks if the user is logged in by verifying both SAP and Ollama sessions.
      *
      * @return {@code true} if the user is logged into either SAP or Ollama, {@code false} otherwise.
      */
     public static boolean isUserLoggedIn() {
-    	return (isSapSession() || isOllamaSession()) ? true : false;
+        return isSapSession() || isOllamaSession();
     }
     
     /**
@@ -35,13 +42,10 @@ public abstract class SessionManager {
      * @return {@code true} if all required SAP session components are present, {@code false} otherwise.
      */
     public static boolean isSapSession() {
-        MemoryAccessToken memoryAccessToken = MemoryAccessToken.getInstance();
         MemoryServiceKey memoryServiceKey = MemoryServiceKey.getInstance();
         MemoryResourceGroup memoryResourceGroup = MemoryResourceGroup.getInstance();
         MemoryDeployment memoryDeployment = MemoryDeployment.getInstance();
-
-        return (memoryAccessToken.isEmpty() || memoryServiceKey.isEmpty() || memoryResourceGroup.isEmpty()
-                || memoryDeployment.isEmpty()) ? false : true;
+        return !memoryServiceKey.isEmpty() && !memoryResourceGroup.isEmpty() && !memoryDeployment.isEmpty();
     }
     
     /**
@@ -66,6 +70,7 @@ public abstract class SessionManager {
     public static void login(final Browser browser) {
         browser.execute("login();");
         TagHandler.update(browser);
+        renderActive(browser);
     }
 
     /**
@@ -78,7 +83,13 @@ public abstract class SessionManager {
      * @param eclipseMemory the {@link EclipseMemory} instance used to clear all memory.
      */
     public static void logout(final Browser browser, final EclipseMemory eclipseMemory) {
+        String activeSession = eclipseMemory.loadFromEclipsePreferences(PreferenceActiveSessionStore.KEY);
         eclipseMemory.clearAll();
+        if (activeSession != null) {
+            eclipseMemory.saveOnEclipsePreferences(PreferenceActiveSessionStore.KEY, activeSession);
+        }
+        clearSecureKey();
+        AiCoreTokenProvider.invalidateActive();
         if (browser != null && !browser.isDisposed()) {
             browser.execute("logout();");
         }
@@ -100,10 +111,52 @@ public abstract class SessionManager {
      * </p>
      */
     private static void clearSapSession() {
-    	MemoryAccessToken.getInstance().clear();
-    	MemoryServiceKey.getInstance().clear();
-    	MemoryResourceGroup.getInstance().clear();
-    	MemoryDeployment.getInstance().clear();
+        MemoryServiceKey.getInstance().clear();
+        MemoryResourceGroup.getInstance().clear();
+        MemoryDeployment.getInstance().clear();
+    }
+
+    /**
+     * Clears the secure service key when the memory singleton is ready.
+     */
+    private static void clearSecureKey() {
+        try {
+            MemoryServiceKey.getInstance().clear();
+        } catch (IllegalStateException ex) {
+            return;
+        }
+    }
+
+    /**
+     * Renders the active session once. A failure is shown in the view.
+     *
+     * @param browser the chat browser.
+     */
+    private static void renderActive(final Browser browser) {
+        try {
+            if (Activator.getDefault() == null || browser == null || browser.isDisposed()) {
+                return;
+            }
+            ChatSessionService sessions = Activator.getDefault().chatSessions();
+            Optional<SessionInfo> current = sessions.active();
+            if (current.isEmpty()) {
+                return;
+            }
+            BrowserStreamBridge.render(browser, sessions.history(current.get().threadId()));
+        } catch (RuntimeException ex) {
+            showLoadError(browser);
+        }
+    }
+
+    /**
+     * Shows a load failure without leaving the view blocked.
+     *
+     * @param browser the chat browser.
+     */
+    private static void showLoadError(final Browser browser) {
+        if (browser != null && !browser.isDisposed()) {
+            browser.execute("showError(" + new Gson().toJson("Could not load this chat.") + ")");
+        }
     }
     
     /**

@@ -4,7 +4,10 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.developer.nefarious.zjoule.plugin.chat.memory.MemoryMessageHistory;
+import com.developer.nefarious.zjoule.plugin.agent.ChatRuntime;
+import com.developer.nefarious.zjoule.plugin.agent.ChatSessionService;
+import com.developer.nefarious.zjoule.plugin.core.preferences.HistoryWindow;
+import com.developer.nefarious.zjoule.plugin.core.preferences.Instruction;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryAccessToken;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryDeployment;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryOllamaEndpoint;
@@ -12,12 +15,13 @@ import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryOllamaM
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryResourceGroup;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryServiceKey;
 import com.developer.nefarious.zjoule.plugin.memory.EclipseMemory;
-import com.developer.nefarious.zjoule.plugin.memory.MemoryAccessToken;
+import com.developer.nefarious.zjoule.plugin.memory.LegacySecretCleaner;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryDeployment;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryOllamaEndpoint;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryOllamaModel;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryResourceGroup;
 import com.developer.nefarious.zjoule.plugin.memory.MemoryServiceKey;
+import com.developer.nefarious.zjoule.plugin.memory.SecureStore;
 import com.developer.nefarious.zjoule.plugin.memory.utils.ObjectSerializer;
 
 /**
@@ -34,6 +38,9 @@ public class Activator extends AbstractUIPlugin {
 
     /** The shared instance of the {@code Activator}. */
     private static Activator plugin;
+
+    /** Lazily opened chat runtime. History lives in the checkpointer. */
+    private ChatRuntime chatRuntime;
 
     /**
      * Returns the shared instance of the {@code Activator}.
@@ -60,23 +67,33 @@ public class Activator extends AbstractUIPlugin {
     private void initialize() {
         ObjectSerializer objectSerializer = new ObjectSerializer();
         EclipseMemory eclipseMemory = new EclipseMemory();
+        LegacySecretCleaner.erase(eclipseMemory);
+        SecureStore secureStore = new SecureStore();
 
-        // Initialize memory resources for chat consumption
-        MemoryAccessToken.initialize(objectSerializer, eclipseMemory);
-        MemoryServiceKey.initialize(objectSerializer, eclipseMemory);
+        MemoryServiceKey.initialize(secureStore);
         MemoryResourceGroup.initialize(eclipseMemory);
         MemoryDeployment.initialize(objectSerializer, eclipseMemory);
-        MemoryMessageHistory.initialize(objectSerializer, eclipseMemory);
         MemoryOllamaEndpoint.initialize(eclipseMemory);
         MemoryOllamaModel.initialize(objectSerializer, eclipseMemory);
 
-        // Initialize memory resources for login operation
-        TemporaryMemoryAccessToken.initialize(objectSerializer, eclipseMemory);
-        TemporaryMemoryServiceKey.initialize(objectSerializer, eclipseMemory);
+        TemporaryMemoryAccessToken.initialize();
+        TemporaryMemoryServiceKey.initialize(secureStore);
         TemporaryMemoryResourceGroup.initialize(eclipseMemory);
         TemporaryMemoryDeployment.initialize(objectSerializer, eclipseMemory);
         TemporaryMemoryOllamaEndpoint.initialize(eclipseMemory);
         TemporaryMemoryOllamaModel.initialize(objectSerializer, eclipseMemory);
+    }
+
+    /**
+     * Returns the chat session service, opening it on first use.
+     *
+     * @return the session service.
+     */
+    public synchronized ChatSessionService chatSessions() {
+        if (chatRuntime == null) {
+            chatRuntime = ChatRuntime.openDefault();
+        }
+        return chatRuntime;
     }
 
     /**
@@ -100,6 +117,10 @@ public class Activator extends AbstractUIPlugin {
      */
     @Override
     public void stop(final BundleContext context) throws Exception {
+        if (chatRuntime != null) {
+            chatRuntime.shutdown();
+            chatRuntime = null;
+        }
         plugin = null;
         super.stop(context);
     }
@@ -113,7 +134,7 @@ public class Activator extends AbstractUIPlugin {
      */
     @Override
     protected void initializeDefaultPreferences(final IPreferenceStore store) {
-        store.setDefault("instructions", "Be a friendly SAP ABAP expert, providing concise answers aligned with best practices and clean-code principles.");
-        
+        store.setDefault(Instruction.KEY, "Be a friendly SAP ABAP expert, providing concise answers aligned with best practices and clean-code principles.");
+        store.setDefault(HistoryWindow.KEY, HistoryWindow.DEFAULT);
     }
 }
