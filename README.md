@@ -39,7 +39,7 @@ The following table outlines the Generative AI models currently compatible with 
 > **Privacy Information** <br>
 We know how privacy is important and ensure that all communication handled by the plugin is secure **is a must**. Here's how your data is managed:
 > - **Data Flow:** All communication facilitated by the plugin occurs exclusively between Eclipse and the SAP AI Core model APIs. No external intermediaries are involved.
-> - **Data Storage:** Any data processed or generated during plugin usage is stored locally within Eclipse's memory mechanism, ensuring it remains private and confined to your development environment. <br>
+> - **Data Storage:** Chat history is stored as plaintext JSON in the Eclipse plug-in state location, one file per session. The SAP service key is stored in Eclipse secure storage. Access tokens stay in memory and are not written to disk. <br>
 >
 > By keeping all operations local and secure, the plugin should provide a trustworthy and seamless experience.
 
@@ -138,13 +138,13 @@ zJoule offers code snippets and on-the-go assistance, helping you learn or recal
 
 When the user opens a new component, such as a class or a CDS view, zJoule will retrieve its content and include it as context for the user prompt. A small tag will appear above the input box, indicating the content being used as context.
 
-### Clean up chat history.
+### Start a new chat.
 
-As the chat progresses, additional information will be collected and shared with the AI assistant to enhance personalization. However, the user can clear the chat history at any time if the accumulated messages are no longer relevant to the conversation.
+New chat starts an empty conversation in the view. Previous sessions stay on disk.
 
 ### Logout from the current SAP AI Core instance.
 
-Logging out will erase the chat history and any login data used during the LLM communication process, enabling users to establish new connections entirely independent of previous interactions.
+Logging out clears the service key from Eclipse secure storage and drops the in-memory access token. Chat history files are kept, so a later login can show them again.
 
 ## How to Contribute
 

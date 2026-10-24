@@ -1,152 +1,83 @@
 package com.developer.nefarious.zjoule.test.login.memory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryAccessToken;
-import com.developer.nefarious.zjoule.plugin.memory.IEclipseMemory;
-import com.developer.nefarious.zjoule.plugin.memory.utils.IObjectSerializer;
+import com.developer.nefarious.zjoule.plugin.memory.EclipseMemory;
 import com.developer.nefarious.zjoule.plugin.models.AccessToken;
 
 public class TemporaryMemoryAccessTokenTest {
 
-	public static final String FINAL_KEY = "access-token";
+    private TemporaryMemoryAccessToken cut;
 
-	public static final String TEMPORARY_KEY = "tmp-access-token";
+    @BeforeEach
+    public void setUp() {
+        TemporaryMemoryAccessToken.resetInstance();
+        TemporaryMemoryAccessToken.initialize();
+        cut = spy(TemporaryMemoryAccessToken.getInstance());
+    }
 
-	private TemporaryMemoryAccessToken cut;
+    @Test
+    public void shouldBeEmptyWhenAccessTokenIsBlank() {
+        AccessToken token = new AccessToken();
+        token.setAccessToken(" ");
+        doReturn(token).when(cut).load();
 
-	@Mock
-	IObjectSerializer mockObjectSerializer;
+        assertTrue(cut.isEmpty());
+        verify(cut).load();
+    }
 
-	@Mock
-	IEclipseMemory mockEclipseMemory;
+    @Test
+    public void shouldBeEmptyWhenAccessTokenIsEmpty() {
+        AccessToken token = new AccessToken();
+        token.setAccessToken("");
+        doReturn(token).when(cut).load();
 
-	@BeforeEach
-	public void setUp() {
-		MockitoAnnotations.openMocks(this);
+        assertTrue(cut.isEmpty());
+    }
 
-		TemporaryMemoryAccessToken.resetInstance();
-		TemporaryMemoryAccessToken.initialize(mockObjectSerializer, mockEclipseMemory);
-		cut = spy(TemporaryMemoryAccessToken.getInstance());
-	}
+    @Test
+    public void shouldBeEmptyWhenAccessTokenIsNull() {
+        AccessToken token = new AccessToken();
+        token.setAccessToken(null);
+        doReturn(token).when(cut).load();
 
-	@Test
-	public void shouldBeEmptyWhenAccessTokenIsBlank() {
-		// Arrange
-		AccessToken mockAccessaToken = new AccessToken();
-		mockAccessaToken.setAccessToken(" ");
-		doReturn(mockAccessaToken).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+        assertTrue(cut.isEmpty());
+    }
 
-	@Test
-	public void shouldBeEmptyWhenAccessTokenIsEmpty() {
-		// Arrange
-		AccessToken mockAccessaToken = new AccessToken();
-		mockAccessaToken.setAccessToken("");
-		doReturn(mockAccessaToken).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+    @Test
+    public void shouldKeepTheTokenInMemoryUntilPersistDropsIt() {
+        AccessToken token = new AccessToken();
+        token.setAccessToken("wizard-token");
+        EclipseMemory preferences = new EclipseMemory();
 
-	@Test
-	public void shouldBeEmptyWhenAccessTokenIsNull() {
-		// Arrange
-		AccessToken mockAccessaToken = new AccessToken();
-		mockAccessaToken.setAccessToken(null);
-		doReturn(mockAccessaToken).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+        cut.save(token);
 
-	@Test
-	public void shouldBeEmptyWhenNoMemory() {
-		// Arrange
-		doReturn(null).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+        assertEquals(token, cut.load());
+        cut.persist();
 
-	@Test
-	public void shouldLoadAccessToken() {
-		// Arrange
-		AccessToken expectedValue = new AccessToken();
-		String mockSerializedObject = "It doesn't matter";
-		when(mockEclipseMemory.loadFromEclipsePreferences(TEMPORARY_KEY)).thenReturn(mockSerializedObject);
-		when(mockObjectSerializer.deserialize(mockSerializedObject, AccessToken.class)).thenReturn(expectedValue);
-		// Act
-		AccessToken returnValue = cut.load();
-		// Assert
-		assertEquals(returnValue, expectedValue);
-	}
+        assertNull(cut.load());
+        assertNull(preferences.loadFromEclipsePreferences(TemporaryMemoryAccessToken.KEY));
+        assertNull(preferences.loadFromEclipsePreferences("access-token"));
+    }
 
-	@Test
-	public void shouldNotBeEmptyWhenAccessTokenIsSave() {
-		// Arrange
-		AccessToken mockAccessaToken = new AccessToken();
-		mockAccessaToken.setAccessToken("some-access-token");
-		doReturn(mockAccessaToken).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertFalse(returnValue);
-	}
+    @Test
+    public void shouldClearTheInMemoryToken() {
+        AccessToken token = new AccessToken();
+        token.setAccessToken("wizard-token");
+        cut.save(token);
 
-	@Test
-	public void shouldPersistAccessToken() {
-		// Arrange
-		String mockSerializedObject = "It doesn't matter";
-		when(mockEclipseMemory.loadFromEclipsePreferences(TEMPORARY_KEY)).thenReturn(mockSerializedObject);
-		// Act
-		cut.persist();
-		// Assert
-		verify(mockEclipseMemory).saveOnEclipsePreferences(FINAL_KEY, mockSerializedObject);
-	}
+        cut.clear();
 
-	@Test
-	public void shouldSaveAccessToken() {
-		// Arrange
-		AccessToken mockAccessToken = new AccessToken();
-		String mockSerializedObject = "It doesn't matter";
-		when(mockObjectSerializer.serialize(mockAccessToken)).thenReturn(mockSerializedObject);
-		// Act
-		cut.save(mockAccessToken);
-		// Assert
-		verify(mockEclipseMemory).saveOnEclipsePreferences(TEMPORARY_KEY, mockSerializedObject);
-	}
-	
-	@Test
-	public void shouldEraseFromMemory() {
-		// Arrange
-		// Act
-		cut.clear();
-		// Assert
-		verify(mockEclipseMemory).deleteFromEclipsePreferences(TEMPORARY_KEY);
-	}
+        assertNull(cut.load());
+    }
 
 }

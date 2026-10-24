@@ -1,6 +1,7 @@
 package com.developer.nefarious.zjoule.plugin.core.preferences;
 
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -91,6 +92,7 @@ public class PluginPreferencesPage extends FieldEditorPreferencePage implements 
         groupContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         addField(new InputField(Instruction.KEY, "Instructions:", groupContent));
+        addField(new IntegerFieldEditor(HistoryWindow.KEY, "History window:", groupContent));
     }
 
     /**

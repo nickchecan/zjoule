@@ -69,7 +69,10 @@ public class ViewRender implements IViewRender {
         buffer.append("<div class=\"chat-input\">");
         buffer.append("<div class=\"tag-box\">#Tag</div>");
         buffer.append("<input type=\"text\" id=\"userInput\" placeholder=\"Type your message here...\" />");
+        buffer.append("<div class=\"button-row\">");
         buffer.append("<button id=\"send\" onclick=\"sendMessage()\">Send</button>");
+        buffer.append("<button id=\"stop\" onclick=\"stopGeneration()\" disabled>Stop</button>");
+        buffer.append("</div>");
         buffer.append("</div>");
         buffer.append("</div>");
         buffer.append("</body>");

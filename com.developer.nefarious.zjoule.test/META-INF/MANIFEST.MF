@@ -6,6 +6,8 @@ Bundle-Version: 1.0.0
 Import-Package: com.google.gson;version="2.11.0"
 Require-Bundle: 
  com.developer.nefarious.zjoule.plugin;bundle-version="1.0.0",
+ com.developer.nefarious.zjoule.libs,
+ org.eclipse.equinox.security,
  org.eclipse.ui;bundle-version="3.206.100",
  junit-jupiter-api,
  org.mockito.mockito-core;resolution:=optional,

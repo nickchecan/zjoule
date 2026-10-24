@@ -1,31 +1,26 @@
 package com.developer.nefarious.zjoule.plugin.login.memory;
 
-import com.developer.nefarious.zjoule.plugin.memory.IEclipseMemory;
 import com.developer.nefarious.zjoule.plugin.memory.IMemoryObject;
-import com.developer.nefarious.zjoule.plugin.memory.MemoryServiceKey;
-import com.developer.nefarious.zjoule.plugin.memory.utils.IObjectSerializer;
+import com.developer.nefarious.zjoule.plugin.memory.LegacySecretCleaner;
+import com.developer.nefarious.zjoule.plugin.memory.SecureStore;
 import com.developer.nefarious.zjoule.plugin.models.ServiceKey;
 
 /**
- * Manages temporary storage and retrieval of service key information during the login process.
- * <p>
- * The {@code TemporaryMemoryServiceKey} class provides methods to save, load, and persist
- * temporary service key data using Eclipse preferences. It implements {@link IMemoryObject<ServiceKey>}
- * and {@link ITemporaryMemoryObject}.
+ * Holds a service key in memory during login, then writes it to secure storage.
  */
 public class TemporaryMemoryServiceKey implements IMemoryObject<ServiceKey>, ITemporaryMemoryObject {
 
     /** Singleton instance of {@code TemporaryMemoryServiceKey}. */
     private static TemporaryMemoryServiceKey instance;
 
-    /** Key used for storing and retrieving the temporary service key in Eclipse preferences. */
-    public static final String KEY = "tmp-" + MemoryServiceKey.KEY;
+    /** Legacy preference key. No longer written. */
+    public static final String KEY = LegacySecretCleaner.TEMP_SERVICE_KEY;
 
-    /** Serializer for converting objects to and from serialized formats. */
-    private IObjectSerializer objectSerializer;
+    /** Encrypted store used by {@link #persist()}. */
+    private SecureStore secureStore;
 
-    /** Manages interactions with Eclipse's preferences storage. */
-    private IEclipseMemory eclipseMemory;
+    /** Wizard value. Never flushed to preferences. */
+    private ServiceKey current;
 
     /**
      * Retrieves the singleton instance of {@code TemporaryMemoryServiceKey}.
@@ -41,14 +36,13 @@ public class TemporaryMemoryServiceKey implements IMemoryObject<ServiceKey>, ITe
     }
 
     /**
-     * Initializes the {@code TemporaryMemoryServiceKey} singleton with the specified dependencies.
+     * Initializes the singleton.
      *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
+     * @param secureStore the encrypted store that receives {@link #persist()}.
      */
-    public static void initialize(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
+    public static void initialize(final SecureStore secureStore) {
         if (instance == null) {
-            instance = new TemporaryMemoryServiceKey(objectSerializer, eclipseMemory);
+            instance = new TemporaryMemoryServiceKey(secureStore);
         }
     }
 
@@ -62,12 +56,10 @@ public class TemporaryMemoryServiceKey implements IMemoryObject<ServiceKey>, ITe
     /**
      * Private constructor to enforce singleton behavior.
      *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
+     * @param secureStore the encrypted store that receives {@link #persist()}.
      */
-    private TemporaryMemoryServiceKey(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
-        this.objectSerializer = objectSerializer;
-        this.eclipseMemory = eclipseMemory;
+    private TemporaryMemoryServiceKey(final SecureStore secureStore) {
+        this.secureStore = secureStore;
     }
 
     /**
@@ -88,11 +80,16 @@ public class TemporaryMemoryServiceKey implements IMemoryObject<ServiceKey>, ITe
      */
     @Override
     public ServiceKey load() {
-        try {
-            String serializedObject = eclipseMemory.loadFromEclipsePreferences(KEY);
-            return objectSerializer.deserialize(serializedObject, ServiceKey.class);
-        } catch (Exception e) {
-            return null;
+        return current;
+    }
+
+    /**
+     * Writes the in-memory key to secure storage.
+     */
+    @Override
+    public void persist() {
+        if (current != null) {
+            secureStore.putServiceKey(current);
         }
     }
 
@@ -100,23 +97,15 @@ public class TemporaryMemoryServiceKey implements IMemoryObject<ServiceKey>, ITe
      * {@inheritDoc}
      */
     @Override
-    public void persist() {
-        String serializedObject = eclipseMemory.loadFromEclipsePreferences(KEY);
-        eclipseMemory.saveOnEclipsePreferences(MemoryServiceKey.KEY, serializedObject);
+    public void save(final ServiceKey serviceKey) {
+        current = serviceKey;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void save(final ServiceKey serviceKey) {
-        String serializedObject = objectSerializer.serialize(serviceKey);
-        eclipseMemory.saveOnEclipsePreferences(KEY, serializedObject);
-    }
-    
-    @Override
     public void clear() {
-    	eclipseMemory.deleteFromEclipsePreferences(KEY);
+        current = null;
     }
-    
 }

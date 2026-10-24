@@ -1,12 +1,15 @@
 package com.developer.nefarious.zjoule.test.login.memory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,139 +17,98 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryServiceKey;
-import com.developer.nefarious.zjoule.plugin.memory.IEclipseMemory;
-import com.developer.nefarious.zjoule.plugin.memory.utils.IObjectSerializer;
+import com.developer.nefarious.zjoule.plugin.memory.SecureStore;
 import com.developer.nefarious.zjoule.plugin.models.ServiceKey;
 
 public class TemporaryMemoryServiceKeyTest {
 
-	public static final String FINAL_KEY = "service-key";
+    private TemporaryMemoryServiceKey cut;
 
-	public static final String TEMPORARY_KEY = "tmp-service-key";
+    @Mock
+    private SecureStore mockSecureStore;
 
-	private TemporaryMemoryServiceKey cut;
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        TemporaryMemoryServiceKey.resetInstance();
+        TemporaryMemoryServiceKey.initialize(mockSecureStore);
+        cut = spy(TemporaryMemoryServiceKey.getInstance());
+    }
 
-	@Mock
-	IObjectSerializer mockObjectSerializer;
+    @Test
+    public void shouldBeEmptyWhenNoMemory() {
+        doReturn(null).when(cut).load();
 
-	@Mock
-	IEclipseMemory mockEclipseMemory;
+        assertTrue(cut.isEmpty());
+        verify(cut).load();
+    }
 
-	@BeforeEach
-	public void setUp() {
-		MockitoAnnotations.openMocks(this);
+    @Test
+    public void shouldBeEmptyWhenServiceKeyIsBlank() {
+        ServiceKey serviceKey = new ServiceKey();
+        serviceKey.setClientId(" ");
+        doReturn(serviceKey).when(cut).load();
 
-		TemporaryMemoryServiceKey.resetInstance();
-		TemporaryMemoryServiceKey.initialize(mockObjectSerializer, mockEclipseMemory);
-		cut = spy(TemporaryMemoryServiceKey.getInstance());
-	}
+        assertTrue(cut.isEmpty());
+    }
 
-	@Test
-	public void shouldBeEmptyWhenNoMemory() {
-		// Arrange
-		doReturn(null).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+    @Test
+    public void shouldBeEmptyWhenServiceKeyIsEmpty() {
+        ServiceKey serviceKey = new ServiceKey();
+        serviceKey.setClientId("");
+        doReturn(serviceKey).when(cut).load();
 
-	@Test
-	public void shouldBeEmptyWhenServiceKeyIsBlank() {
-		// Arrange
-		ServiceKey mockServiceKey = new ServiceKey();
-		mockServiceKey.setClientId(" ");
-		doReturn(mockServiceKey).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+        assertTrue(cut.isEmpty());
+    }
 
-	@Test
-	public void shouldBeEmptyWhenServiceKeyIsEmpty() {
-		// Arrange
-		ServiceKey mockServiceKey = new ServiceKey();
-		mockServiceKey.setClientId("");
-		doReturn(mockServiceKey).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+    @Test
+    public void shouldBeEmptyWhenServiceKeyIsNull() {
+        ServiceKey serviceKey = new ServiceKey();
+        serviceKey.setClientId(null);
+        doReturn(serviceKey).when(cut).load();
 
-	@Test
-	public void shouldBeEmptyWhenServiceKeyIsNull() {
-		// Arrange
-		ServiceKey mockServiceKey = new ServiceKey();
-		mockServiceKey.setClientId(null);
-		doReturn(mockServiceKey).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertTrue(returnValue);
-	}
+        assertTrue(cut.isEmpty());
+    }
 
-	@Test
-	public void shouldLoadServiceKey() {
-		// Arrange
-		ServiceKey expectedValue = new ServiceKey();
-		String mockSerializedObject = "It doesn't matter";
-		when(mockEclipseMemory.loadFromEclipsePreferences(TEMPORARY_KEY)).thenReturn(mockSerializedObject);
-		when(mockObjectSerializer.deserialize(mockSerializedObject, ServiceKey.class)).thenReturn(expectedValue);
-		// Act
-		ServiceKey returnValue = cut.load();
-		// Assert
-		assertEquals(returnValue, expectedValue);
-	}
+    @Test
+    public void shouldHoldTheKeyInMemoryWithoutWritingSecureStorage() {
+        ServiceKey serviceKey = new ServiceKey();
+        serviceKey.setClientId("client");
 
-	@Test
-	public void shouldNotBeEmptyWhenServiceKeyIsSave() {
-		// Arrange
-		ServiceKey mockServiceKey = new ServiceKey();
-		mockServiceKey.setClientId("some-service-key");
-		doReturn(mockServiceKey).when(cut).load();
-		// Act
-		Boolean returnValue = cut.isEmpty();
-		// Assert
-		verify(cut).load();
-		assertFalse(returnValue);
-	}
+        cut.save(serviceKey);
 
-	@Test
-	public void shouldPersistServiceKey() {
-		// Arrange
-		String mockSerializedObject = "It doesn't matter";
-		when(mockEclipseMemory.loadFromEclipsePreferences(TEMPORARY_KEY)).thenReturn(mockSerializedObject);
-		// Act
-		cut.persist();
-		// Assert
-		verify(mockEclipseMemory).saveOnEclipsePreferences(FINAL_KEY, mockSerializedObject);
-	}
+        assertEquals(serviceKey, cut.load());
+        verify(mockSecureStore, never()).putServiceKey(serviceKey);
+    }
 
-	@Test
-	public void shouldSaveServiceKey() {
-		// Arrange
-		ServiceKey mockServiceKey = new ServiceKey();
-		String mockSerializedObject = "It doesn't matter";
-		when(mockObjectSerializer.serialize(mockServiceKey)).thenReturn(mockSerializedObject);
-		// Act
-		cut.save(mockServiceKey);
-		// Assert
-		verify(mockEclipseMemory).saveOnEclipsePreferences(TEMPORARY_KEY, mockSerializedObject);
-	}
-	
-	@Test
-	public void shouldEraseFromMemory() {
-		// Arrange
-		// Act
-		cut.clear();
-		// Assert
-		verify(mockEclipseMemory).deleteFromEclipsePreferences(TEMPORARY_KEY);
-	}
+    @Test
+    public void shouldPersistTheInMemoryKeyToSecureStorage() {
+        ServiceKey serviceKey = new ServiceKey();
+        serviceKey.setClientId("client");
+        cut.save(serviceKey);
+
+        cut.persist();
+
+        verify(mockSecureStore).putServiceKey(serviceKey);
+    }
+
+    @Test
+    public void shouldSkipPersistWhenNothingWasEntered() {
+        cut.persist();
+
+        verify(mockSecureStore, never()).putServiceKey(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    public void shouldClearTheInMemoryKey() {
+        ServiceKey serviceKey = new ServiceKey();
+        when(mockSecureStore.serviceKey()).thenReturn(Optional.of(serviceKey));
+        cut.save(serviceKey);
+
+        cut.clear();
+
+        assertNull(cut.load());
+        verify(mockSecureStore, never()).clear();
+    }
 
 }

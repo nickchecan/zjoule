@@ -2,6 +2,7 @@ package com.developer.nefarious.zjoule.plugin.auth;
 
 import java.io.IOException;
 
+import com.developer.nefarious.zjoule.plugin.models.AccessToken;
 import com.developer.nefarious.zjoule.plugin.models.ServiceKey;
 
 /**
@@ -39,6 +40,16 @@ public interface IAuthClient {
      * @throws InterruptedException if the operation is interrupted
      */
 	public String getNewAccessToken(final ServiceKey serviceKey) throws IOException, InterruptedException;
+
+	/**
+	 * Requests an access token and does not store it.
+	 *
+	 * @param serviceKey the {@link ServiceKey} used for authentication
+	 * @return the token, including its expiry
+	 * @throws IOException if an I/O error occurs
+	 * @throws InterruptedException if the operation is interrupted
+	 */
+	AccessToken requestAccessToken(final ServiceKey serviceKey) throws IOException, InterruptedException;
 
 	/**
      * Retrieves the service URL from the stored service key.

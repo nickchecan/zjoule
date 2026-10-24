@@ -86,6 +86,12 @@ body {
 	font-size: 16px;
 }
 
+.button-row {
+	display: flex;
+	gap: 8px;
+	align-self: flex-end;
+}
+
 .chat-input button {
 	padding: 10px;
 	background-color: #8C60FF;

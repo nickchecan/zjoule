@@ -137,14 +137,24 @@ function hidePlaceholder() {
 	placeholder.style.display = "none";
 }
 
+let streamingText = "";
+
 function blockInput() {
 	document.getElementById('userInput').disabled = true;
 	document.getElementById('send').disabled = true;
+	const stop = document.getElementById('stop');
+	if (stop) {
+		stop.disabled = false;
+	}
 }
 
 function unblockInput() {
 	document.getElementById('userInput').disabled = false;
 	document.getElementById('send').disabled = false;
+	const stop = document.getElementById('stop');
+	if (stop) {
+		stop.disabled = true;
+	}
 }
 
 function startLoading() {
@@ -157,13 +167,86 @@ function startLoading() {
 }
 
 function finishLoading() {
+	removeLoading();
+	unblockInput();
+}
+
+function removeLoading() {
 	const chatBox = document.getElementById('chatBox');
 	const botMessages = document.getElementsByClassName('message bot-message');
-	if (botMessages.length > 0) {
-		const loadingIndicator = botMessages[botMessages.length - 1];
+	if (botMessages.length === 0) {
+		return;
+	}
+	const loadingIndicator = botMessages[botMessages.length - 1];
+	if (loadingIndicator.querySelector('svg')) {
 		chatBox.removeChild(loadingIndicator);
 	}
+}
+
+function startBotMessage() {
+	removeLoading();
+	streamingText = "";
+	const chatBox = document.getElementById('chatBox');
+	const message = document.createElement('div');
+	message.className = 'message bot-message streaming';
+	chatBox.appendChild(message);
+	chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function appendBotChunk(chunk) {
+	streamingText += chunk;
+	const bubbles = document.getElementsByClassName('streaming');
+	if (bubbles.length === 0) {
+		return;
+	}
+	const bubble = bubbles[bubbles.length - 1];
+	bubble.textContent = streamingText;
+	const chatBox = document.getElementById('chatBox');
+	chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function finishBotMessage(fullText) {
+	const bubbles = document.getElementsByClassName('streaming');
+	if (bubbles.length > 0) {
+		const bubble = bubbles[bubbles.length - 1];
+		bubble.classList.remove('streaming');
+		bubble.innerHTML = marked.parse(fullText);
+	}
+	streamingText = "";
 	unblockInput();
+	updatePlaceholder();
+}
+
+function markCancelled() {
+	removeLoading();
+	const bubbles = document.getElementsByClassName('streaming');
+	if (bubbles.length > 0) {
+		const bubble = bubbles[bubbles.length - 1];
+		bubble.classList.remove('streaming');
+		bubble.textContent = (bubble.textContent || "") + " (cancelled)";
+	} else {
+		const chatBox = document.getElementById('chatBox');
+		const message = document.createElement('div');
+		message.className = 'message bot-message';
+		message.textContent = "(cancelled)";
+		chatBox.appendChild(message);
+	}
+	streamingText = "";
+	unblockInput();
+}
+
+function showError(message) {
+	removeLoading();
+	addBotMessage(message);
+	unblockInput();
+	updatePlaceholder();
+}
+
+function showApproval(summary) {
+}
+
+function stopGeneration() {
+	cancelAIResponse();
 }
 
 document.addEventListener('keydown', function(event) {

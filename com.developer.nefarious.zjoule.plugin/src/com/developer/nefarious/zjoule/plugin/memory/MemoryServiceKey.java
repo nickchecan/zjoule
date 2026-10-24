@@ -1,27 +1,20 @@
 package com.developer.nefarious.zjoule.plugin.memory;
 
-import com.developer.nefarious.zjoule.plugin.memory.utils.IObjectSerializer;
 import com.developer.nefarious.zjoule.plugin.models.ServiceKey;
 
 /**
- * Manages the storage and retrieval of service key information in memory.
- * <p>
- * The {@code MemoryServiceKey} class provides methods to save, load, and check
- * the validity of service key data stored in Eclipse preferences. It implements {@link IMemoryObject<ServiceKey>}.
+ * Stores the service key in Eclipse secure storage.
  */
 public class MemoryServiceKey implements IMemoryObject<ServiceKey> {
-	
-    /** Key used for storing and retrieving the service key information in memory. */
-    public static final String KEY = "service-key";
+
+    /** Legacy preference key. Deleted on startup and no longer written. */
+    public static final String KEY = LegacySecretCleaner.SERVICE_KEY;
 
     /** Singleton instance of {@code MemoryServiceKey}. */
     private static MemoryServiceKey instance;
 
-    /** Serializer for converting objects to and from serialized formats. */
-    private IObjectSerializer objectSerializer;
-
-    /** Manages interactions with Eclipse's preferences storage. */
-    private IEclipseMemory eclipseMemory;
+    /** Encrypted store for the service key. */
+    private SecureStore secureStore;
 
     /**
      * Retrieves the singleton instance of {@code MemoryServiceKey}.
@@ -37,14 +30,13 @@ public class MemoryServiceKey implements IMemoryObject<ServiceKey> {
     }
 
     /**
-     * Initializes the {@code MemoryServiceKey} singleton with the specified dependencies.
+     * Initializes the singleton with the secure store.
      *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
+     * @param secureStore the encrypted service-key store.
      */
-    public static void initialize(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
+    public static void initialize(final SecureStore secureStore) {
         if (instance == null) {
-            instance = new MemoryServiceKey(objectSerializer, eclipseMemory);
+            instance = new MemoryServiceKey(secureStore);
         }
     }
 
@@ -58,12 +50,10 @@ public class MemoryServiceKey implements IMemoryObject<ServiceKey> {
     /**
      * Private constructor to enforce singleton behavior.
      *
-     * @param objectSerializer the serializer for handling object serialization and deserialization.
-     * @param eclipseMemory the manager for Eclipse preferences storage.
+     * @param secureStore the encrypted service-key store.
      */
-    private MemoryServiceKey(final IObjectSerializer objectSerializer, final IEclipseMemory eclipseMemory) {
-        this.objectSerializer = objectSerializer;
-        this.eclipseMemory = eclipseMemory;
+    private MemoryServiceKey(final SecureStore secureStore) {
+        this.secureStore = secureStore;
     }
 
     /**
@@ -84,12 +74,7 @@ public class MemoryServiceKey implements IMemoryObject<ServiceKey> {
      */
     @Override
     public ServiceKey load() {
-        try {
-            String serializedObject = eclipseMemory.loadFromEclipsePreferences(KEY);
-            return objectSerializer.deserialize(serializedObject, ServiceKey.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return secureStore.serviceKey().orElse(null);
     }
 
     /**
@@ -97,15 +82,14 @@ public class MemoryServiceKey implements IMemoryObject<ServiceKey> {
      */
     @Override
     public void save(final ServiceKey serviceKey) {
-        String serializedObject = objectSerializer.serialize(serviceKey);
-        eclipseMemory.saveOnEclipsePreferences(KEY, serializedObject);
+        secureStore.putServiceKey(serviceKey);
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void clear() {
-    	eclipseMemory.deleteFromEclipsePreferences(KEY);
+        secureStore.clear();
     }
 }

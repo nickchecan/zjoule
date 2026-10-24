@@ -15,6 +15,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.developer.nefarious.zjoule.plugin.core.events.Initialization;
 import com.developer.nefarious.zjoule.plugin.core.events.PartListener;
 import com.developer.nefarious.zjoule.plugin.core.events.SelectionListener;
+import com.developer.nefarious.zjoule.plugin.core.functions.CancelHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.ClearHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LoginHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LogoutHandler;
@@ -65,9 +66,11 @@ public class ViewListener extends ViewPart {
         browser.setText(viewRender.build());
 
         BrowserFunction promptHandler = PromptHandler.create(browser, "getAIResponse");
+        BrowserFunction cancelHandler = CancelHandler.create(browser, "cancelAIResponse");
         browser.addDisposeListener(e -> {
             if (!browser.isDisposed()) {
                 promptHandler.dispose();
+                cancelHandler.dispose();
             }
         });
 

@@ -34,6 +34,7 @@ import org.mockito.MockitoAnnotations;
 import com.developer.nefarious.zjoule.plugin.core.events.Initialization;
 import com.developer.nefarious.zjoule.plugin.core.events.PartListener;
 import com.developer.nefarious.zjoule.plugin.core.events.SelectionListener;
+import com.developer.nefarious.zjoule.plugin.core.functions.CancelHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.ClearHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LoginHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LogoutHandler;
@@ -58,6 +59,8 @@ public class ViewListenerTest {
 	private MockedStatic<PartListener> mockedStaticPartListener;
 
 	private MockedStatic<PromptHandler> mockedStaticPromptHandler;
+
+	private MockedStatic<CancelHandler> mockedStaticCancelHandler;
 
 	private MockedStatic<Display> mockedStaticDisplay;
 
@@ -93,6 +96,9 @@ public class ViewListenerTest {
 	private PromptHandler mockPromptHandler;
 
 	@Mock
+	private CancelHandler mockCancelHandler;
+
+	@Mock
 	private Display mockDisplay;
 
 	@Mock
@@ -116,6 +122,7 @@ public class ViewListenerTest {
 		mockedStaticViewRender = mockStatic(ViewRender.class);
 		mockedStaticPartListener = mockStatic(PartListener.class);
 		mockedStaticPromptHandler = mockStatic(PromptHandler.class);
+		mockedStaticCancelHandler = mockStatic(CancelHandler.class);
 		mockedStaticDisplay = mockStatic(Display.class);
 		mockedStaticLoginHandler = mockStatic(LoginHandler.class);
 		mockedStaticClearHandler = mockStatic(ClearHandler.class);
@@ -127,6 +134,7 @@ public class ViewListenerTest {
 		mockedStaticViewRender.when(ViewRender::create).thenReturn(mockViewRender);
 		mockedStaticPartListener.when(() -> PartListener.create(mockBrowser)).thenReturn(mockPartListener);
 		mockedStaticPromptHandler.when(() -> PromptHandler.create(mockBrowser, "getAIResponse")).thenReturn(mockPromptHandler);
+		mockedStaticCancelHandler.when(() -> CancelHandler.create(mockBrowser, "cancelAIResponse")).thenReturn(mockCancelHandler);
 		mockedStaticDisplay.when(Display::getDefault).thenReturn(mockDisplay);
 		mockedStaticLoginHandler.when(() -> LoginHandler.create(mockShell, mockBrowser)).thenReturn(mockLoginHandler);
 		mockedStaticClearHandler.when(() -> ClearHandler.create(mockBrowser)).thenReturn(mockClearHandler);
@@ -248,6 +256,9 @@ public class ViewListenerTest {
 		}
 		if (mockedStaticPromptHandler != null) {
 			mockedStaticPromptHandler.close();
+		}
+		if (mockedStaticCancelHandler != null) {
+			mockedStaticCancelHandler.close();
 		}
 		if (mockedStaticDisplay != null) {
 			mockedStaticDisplay.close();
