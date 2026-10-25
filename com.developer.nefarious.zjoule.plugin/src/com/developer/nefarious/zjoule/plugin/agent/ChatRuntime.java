@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import org.bsc.langgraph4j.CompiledGraph;
@@ -20,6 +21,7 @@ import org.eclipse.core.runtime.Platform;
 import com.developer.nefarious.zjoule.plugin.agent.model.AiCoreTokenProvider;
 import com.developer.nefarious.zjoule.plugin.agent.model.LoginModelProvider;
 import com.developer.nefarious.zjoule.plugin.agent.model.ModelProvider;
+import com.developer.nefarious.zjoule.plugin.agent.model.ScriptedChat;
 import com.developer.nefarious.zjoule.plugin.agent.persistence.ActiveSessionStore;
 import com.developer.nefarious.zjoule.plugin.agent.persistence.PreferenceActiveSessionStore;
 import com.developer.nefarious.zjoule.plugin.agent.persistence.SessionIndex;
@@ -28,7 +30,7 @@ import com.developer.nefarious.zjoule.plugin.agent.persistence.StateLocationChec
 import com.developer.nefarious.zjoule.plugin.auth.AuthClient;
 import com.developer.nefarious.zjoule.plugin.auth.AuthClientHelper;
 import com.developer.nefarious.zjoule.plugin.core.Activator;
-import com.developer.nefarious.zjoule.plugin.core.preferences.HistoryWindow;
+import com.developer.nefarious.zjoule.plugin.core.preferences.CompactionLimits;
 import com.developer.nefarious.zjoule.plugin.core.preferences.Instruction;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryAccessToken;
 import com.developer.nefarious.zjoule.plugin.memory.EclipseMemory;
@@ -99,9 +101,32 @@ public final class ChatRuntime implements ChatSessionService {
     public ChatRuntime(final Path directory, final ModelProvider models, final PromptAssembler prompt,
             final ActiveSessionStore activeStore, final Supplier<String> providerId, final Supplier<String> modelName,
             final Clock clock) throws IOException, GraphStateException {
+        this(directory, models, prompt, activeStore, providerId, modelName, clock, CompactionLimits::threshold,
+                CompactionLimits::keep);
+    }
+
+    /**
+     * Creates a runtime with explicit compaction limits. Tests use this constructor.
+     *
+     * @param directory the sessions directory.
+     * @param models the model provider.
+     * @param prompt the prompt assembler.
+     * @param activeStore the active session id.
+     * @param providerId the provider id written into the index.
+     * @param modelName the model name written into the index.
+     * @param clock the clock used for index timestamps.
+     * @param threshold the message count that triggers compaction.
+     * @param keep how many recent messages to retain.
+     * @throws IOException when the directory cannot be created.
+     * @throws GraphStateException when the graph cannot be compiled.
+     */
+    public ChatRuntime(final Path directory, final ModelProvider models, final PromptAssembler prompt,
+            final ActiveSessionStore activeStore, final Supplier<String> providerId, final Supplier<String> modelName,
+            final Clock clock, final IntSupplier threshold, final IntSupplier keep) throws IOException, GraphStateException {
         org.bsc.langgraph4j.serializer.StateSerializer<ChatState> serializer = ChatState.serializer();
         this.saver = new StateLocationCheckpointSaver(directory, serializer, RETAIN_NEWEST);
-        this.graph = ChatGraphFactory.create(models, prompt, saver, streamingHandle::set);
+        this.graph = ChatGraphFactory.create(models, prompt, saver, streamingHandle::set, this::turnCancelled, threshold,
+                keep);
         this.index = new SessionIndex(directory, saver, serializer);
         this.activeStore = activeStore;
         this.providerId = providerId;
@@ -339,6 +364,20 @@ public final class ChatRuntime implements ChatSessionService {
     }
 
     /**
+     * Reports whether the turn currently executing was cancelled.
+     * The graph is compiled once, so the node reads the live run.
+     *
+     * @return {@code true} when the active turn has been cancelled.
+     */
+    private boolean turnCancelled() {
+        ChatRun run;
+        synchronized (gate) {
+            run = activeRun;
+        }
+        return run != null && run.wasCancelled();
+    }
+
+    /**
      * Wires the workbench runtime.
      *
      * @return the runtime.
@@ -348,11 +387,15 @@ public final class ChatRuntime implements ChatSessionService {
     private static ChatRuntime openWorkbench() throws IOException, GraphStateException {
         Path directory = Platform.getStateLocation(Activator.getDefault().getBundle()).append(SESSIONS).toFile()
                 .toPath();
-        AiCoreTokenProvider tokens = workbenchTokens();
-        LoginModelProvider models = new LoginModelProvider(tokens);
-        PromptAssembler prompt = new PromptAssembler(Instruction::getMessage, HistoryWindow::size);
-        return new ChatRuntime(directory, models, prompt, new PreferenceActiveSessionStore(new EclipseMemory()),
-                models::providerId, models::modelName, Clock.systemUTC());
+        PromptAssembler prompt = new PromptAssembler(Instruction::getMessage);
+        ActiveSessionStore active = new PreferenceActiveSessionStore(new EclipseMemory());
+        if (ScriptedChat.isEnabled()) {
+            return new ChatRuntime(directory, ScriptedChat.provider(), prompt, active, () -> "scripted",
+                    () -> "scripted", Clock.systemUTC());
+        }
+        LoginModelProvider models = new LoginModelProvider(workbenchTokens());
+        return new ChatRuntime(directory, models, prompt, active, models::providerId, models::modelName,
+                Clock.systemUTC());
     }
 
     /**

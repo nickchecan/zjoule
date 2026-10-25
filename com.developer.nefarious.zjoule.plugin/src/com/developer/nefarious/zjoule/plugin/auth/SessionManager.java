@@ -6,6 +6,7 @@ import org.eclipse.swt.browser.Browser;
 
 import com.developer.nefarious.zjoule.plugin.agent.ChatSessionService;
 import com.developer.nefarious.zjoule.plugin.agent.model.AiCoreTokenProvider;
+import com.developer.nefarious.zjoule.plugin.agent.model.ScriptedChat;
 import com.developer.nefarious.zjoule.plugin.agent.persistence.PreferenceActiveSessionStore;
 import com.developer.nefarious.zjoule.plugin.agent.persistence.SessionInfo;
 import com.developer.nefarious.zjoule.plugin.core.Activator;
@@ -33,7 +34,7 @@ public abstract class SessionManager {
      * @return {@code true} if the user is logged into either SAP or Ollama, {@code false} otherwise.
      */
     public static boolean isUserLoggedIn() {
-        return isSapSession() || isOllamaSession();
+        return isSapSession() || isOllamaSession() || ScriptedChat.isEnabled();
     }
     
     /**

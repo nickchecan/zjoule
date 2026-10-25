@@ -6,7 +6,7 @@ import org.osgi.framework.BundleContext;
 
 import com.developer.nefarious.zjoule.plugin.agent.ChatRuntime;
 import com.developer.nefarious.zjoule.plugin.agent.ChatSessionService;
-import com.developer.nefarious.zjoule.plugin.core.preferences.HistoryWindow;
+import com.developer.nefarious.zjoule.plugin.core.preferences.CompactionLimits;
 import com.developer.nefarious.zjoule.plugin.core.preferences.Instruction;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryAccessToken;
 import com.developer.nefarious.zjoule.plugin.login.memory.TemporaryMemoryDeployment;
@@ -135,6 +135,7 @@ public class Activator extends AbstractUIPlugin {
     @Override
     protected void initializeDefaultPreferences(final IPreferenceStore store) {
         store.setDefault(Instruction.KEY, "Be a friendly SAP ABAP expert, providing concise answers aligned with best practices and clean-code principles.");
-        store.setDefault(HistoryWindow.KEY, HistoryWindow.DEFAULT);
+        store.setDefault(CompactionLimits.THRESHOLD_KEY, CompactionLimits.DEFAULT_THRESHOLD);
+        store.setDefault(CompactionLimits.KEEP_KEY, CompactionLimits.DEFAULT_KEEP);
     }
 }

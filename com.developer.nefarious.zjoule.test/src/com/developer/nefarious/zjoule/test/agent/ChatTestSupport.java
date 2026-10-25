@@ -43,8 +43,11 @@ public final class ChatTestSupport {
     /** Pause between polls of {@link RunHandle#isDone()}. */
     private static final int POLL_MS = 10;
 
-    /** Window used by tests that are not exercising the window itself. */
-    public static final int WIDE_WINDOW = 20;
+    /** Threshold used by tests that are not exercising compaction. */
+    public static final int NO_COMPACTION = Integer.MAX_VALUE;
+
+    /** Keep count paired with {@link #NO_COMPACTION}. */
+    public static final int TEST_KEEP = 20;
 
     /** Provider id written into a fresh index. */
     public static final String PROVIDER = "sap";
@@ -67,23 +70,24 @@ public final class ChatTestSupport {
      * @throws Exception when the graph cannot be compiled.
      */
     public static ChatRuntime runtime(final Path directory, final StreamingChatModel model) throws Exception {
-        return runtime(directory, model, () -> WIDE_WINDOW);
+        return runtime(directory, provider(model), NO_COMPACTION, TEST_KEEP);
     }
 
     /**
-     * Opens a runtime with an explicit history window.
+     * Opens a runtime with an explicit compaction limit.
      *
      * @param directory the sessions directory.
-     * @param model the streaming model.
-     * @param window the history window.
+     * @param models the model provider.
+     * @param threshold the message count that triggers compaction.
+     * @param keep how many recent messages to retain.
      * @return the runtime.
      * @throws Exception when the graph cannot be compiled.
      */
-    public static ChatRuntime runtime(final Path directory, final StreamingChatModel model,
-            final java.util.function.IntSupplier window) throws Exception {
-        PromptAssembler prompt = new PromptAssembler(() -> INSTRUCTIONS, window);
-        return new ChatRuntime(directory, provider(model), prompt, new MemoryActive(), () -> PROVIDER, () -> MODEL,
-                Clock.systemUTC());
+    public static ChatRuntime runtime(final Path directory, final ModelProvider models, final int threshold,
+            final int keep) throws Exception {
+        PromptAssembler prompt = new PromptAssembler(() -> INSTRUCTIONS);
+        return new ChatRuntime(directory, models, prompt, new MemoryActive(), () -> PROVIDER, () -> MODEL,
+                Clock.systemUTC(), () -> threshold, () -> keep);
     }
 
     /**
@@ -210,7 +214,7 @@ public final class ChatTestSupport {
 
             @Override
             public ChatModel blocking() {
-                throw new UnsupportedOperationException("blocking model is not used in v1");
+                throw new UnsupportedOperationException("blocking model is not configured");
             }
         };
     }

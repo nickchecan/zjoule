@@ -35,11 +35,11 @@ import com.developer.nefarious.zjoule.plugin.core.events.Initialization;
 import com.developer.nefarious.zjoule.plugin.core.events.PartListener;
 import com.developer.nefarious.zjoule.plugin.core.events.SelectionListener;
 import com.developer.nefarious.zjoule.plugin.core.functions.CancelHandler;
-import com.developer.nefarious.zjoule.plugin.core.functions.ClearHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LoginHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LogoutHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.PreferencesHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.PromptHandler;
+import com.developer.nefarious.zjoule.plugin.core.functions.SessionsMenu;
 import com.developer.nefarious.zjoule.plugin.core.ui.BrowserFactory;
 import com.developer.nefarious.zjoule.plugin.core.ui.IViewRender;
 import com.developer.nefarious.zjoule.plugin.core.ui.ViewListener;
@@ -65,8 +65,6 @@ public class ViewListenerTest {
 	private MockedStatic<Display> mockedStaticDisplay;
 
 	private MockedStatic<LoginHandler> mockedStaticLoginHandler;
-
-	private MockedStatic<ClearHandler> mockedStaticClearHandler;
 
 	private MockedStatic<LogoutHandler> mockedStaticLogoutHandler;
 	
@@ -105,9 +103,6 @@ public class ViewListenerTest {
 	private LoginHandler mockLoginHandler;
 
 	@Mock
-	private ClearHandler mockClearHandler;
-
-	@Mock
 	private LogoutHandler mockLogoutHandler;
 	
 	@Mock
@@ -125,7 +120,6 @@ public class ViewListenerTest {
 		mockedStaticCancelHandler = mockStatic(CancelHandler.class);
 		mockedStaticDisplay = mockStatic(Display.class);
 		mockedStaticLoginHandler = mockStatic(LoginHandler.class);
-		mockedStaticClearHandler = mockStatic(ClearHandler.class);
 		mockedStaticLogoutHandler = mockStatic(LogoutHandler.class);
 		mockedStaticSystemProvider = mockStatic(SystemProvider.class);
 		mockedStaticPreferencesHandler = mockStatic(PreferencesHandler.class);
@@ -137,7 +131,6 @@ public class ViewListenerTest {
 		mockedStaticCancelHandler.when(() -> CancelHandler.create(mockBrowser, "cancelAIResponse")).thenReturn(mockCancelHandler);
 		mockedStaticDisplay.when(Display::getDefault).thenReturn(mockDisplay);
 		mockedStaticLoginHandler.when(() -> LoginHandler.create(mockShell, mockBrowser)).thenReturn(mockLoginHandler);
-		mockedStaticClearHandler.when(() -> ClearHandler.create(mockBrowser)).thenReturn(mockClearHandler);
 		mockedStaticLogoutHandler.when(() -> LogoutHandler.create(mockBrowser)).thenReturn(mockLogoutHandler);
 		mockedStaticPreferencesHandler.when(PreferencesHandler::create).thenReturn(mockPreferencesHandler);
 
@@ -186,7 +179,7 @@ public class ViewListenerTest {
         assertTrue(actualRunnable instanceof Initialization);
 
         verify(mockToolBarManager).add(mockLoginHandler);
-        verify(mockMenuManager).add(mockClearHandler);
+        verify(mockMenuManager).add(any(SessionsMenu.class));
         verify(mockMenuManager).add(mockPreferencesHandler);
         verify(mockMenuManager).add(any(Separator.class));
         verify(mockMenuManager).add(mockLogoutHandler);
@@ -233,7 +226,7 @@ public class ViewListenerTest {
         assertTrue(actualRunnable instanceof Initialization);
 
         verify(mockToolBarManager).add(mockLoginHandler);
-        verify(mockMenuManager).add(mockClearHandler);
+        verify(mockMenuManager).add(any(SessionsMenu.class));
         verify(mockMenuManager).add(mockPreferencesHandler);
         verify(mockMenuManager).add(any(Separator.class));
         verify(mockMenuManager).add(mockLogoutHandler);
@@ -265,9 +258,6 @@ public class ViewListenerTest {
 		}
 		if (mockedStaticLoginHandler != null) {
 			mockedStaticLoginHandler.close();
-		}
-		if (mockedStaticClearHandler != null) {
-			mockedStaticClearHandler.close();
 		}
 		if (mockedStaticLogoutHandler != null) {
 			mockedStaticLogoutHandler.close();

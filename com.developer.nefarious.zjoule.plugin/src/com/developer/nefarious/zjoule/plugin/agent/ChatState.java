@@ -24,10 +24,13 @@ public final class ChatState extends MessagesState<ChatMessage> {
     /** Full conversation history. */
     public static final String MESSAGES = "messages";
 
-    /** Rolling summary. Reserved for a later compact node. */
+    /** Rolling summary of messages removed by compaction. */
     public static final String SUMMARY = "summary";
 
-    /** Number of leading messages covered by {@link #SUMMARY}. */
+    /**
+     * Kept so checkpoints still have the channel. Compaction resets it to zero.
+     * It is not an index into {@link #MESSAGES} once messages have been removed.
+     */
     public static final String SUMMARIZED_COUNT = "summarized_count";
 
     /** Human approval value. Reserved for a later tools node. */

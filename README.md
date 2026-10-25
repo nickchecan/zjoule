@@ -39,7 +39,7 @@ The following table outlines the Generative AI models currently compatible with 
 > **Privacy Information** <br>
 We know how privacy is important and ensure that all communication handled by the plugin is secure **is a must**. Here's how your data is managed:
 > - **Data Flow:** All communication facilitated by the plugin occurs exclusively between Eclipse and the SAP AI Core model APIs. No external intermediaries are involved.
-> - **Data Storage:** Chat history is stored as plaintext JSON in the Eclipse plug-in state location, one file per session. The SAP service key is stored in Eclipse secure storage. Access tokens stay in memory and are not written to disk. <br>
+> - **Data Storage:** Chat history is stored as plaintext JSON in the Eclipse plug-in state location, one file per session. When a session grows past 40 messages, older messages are summarized and removed from that file. The summary is kept and sent with later prompts. Preferences set the threshold (40) and how many recent messages to keep (20). The SAP service key is stored in Eclipse secure storage. Access tokens stay in memory and are not written to disk. <br>
 >
 > By keeping all operations local and secure, the plugin should provide a trustworthy and seamless experience.
 
@@ -138,9 +138,9 @@ zJoule offers code snippets and on-the-go assistance, helping you learn or recal
 
 When the user opens a new component, such as a class or a CDS view, zJoule will retrieve its content and include it as context for the user prompt. A small tag will appear above the input box, indicating the content being used as context.
 
-### Start a new chat.
+### Sessions.
 
-New chat starts an empty conversation in the view. Previous sessions stay on disk.
+The view menu Sessions lists New chat, the 15 most recent sessions, and Delete current. New chat starts an empty conversation. Previous sessions stay on disk until Delete current removes the one open in the view. A stopped reply leaves the user message in that session.
 
 ### Logout from the current SAP AI Core instance.
 

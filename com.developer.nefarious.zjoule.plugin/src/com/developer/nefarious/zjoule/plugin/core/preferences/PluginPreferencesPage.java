@@ -92,7 +92,8 @@ public class PluginPreferencesPage extends FieldEditorPreferencePage implements 
         groupContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         addField(new InputField(Instruction.KEY, "Instructions:", groupContent));
-        addField(new IntegerFieldEditor(HistoryWindow.KEY, "History window:", groupContent));
+        addField(new IntegerFieldEditor(CompactionLimits.THRESHOLD_KEY, "Compaction threshold:", groupContent));
+        addField(new IntegerFieldEditor(CompactionLimits.KEEP_KEY, "Messages to keep:", groupContent));
     }
 
     /**
