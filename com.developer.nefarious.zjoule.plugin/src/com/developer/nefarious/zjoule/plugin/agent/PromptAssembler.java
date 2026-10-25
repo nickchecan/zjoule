@@ -2,17 +2,18 @@ package com.developer.nefarious.zjoule.plugin.agent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import org.bsc.langgraph4j.RunnableConfig;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.ToolExecutionResultMessage;
 
 /**
  * Builds the prompt for one model call. The prompt is not stored.
+ * <p>
+ * Every message still in the checkpoint is sent. Compaction, not a fixed
+ * window, is what shortens that list.
  */
 public final class PromptAssembler {
 
@@ -24,37 +25,31 @@ public final class PromptAssembler {
 
     private final Supplier<String> instructions;
 
-    private final IntSupplier windowSize;
-
     /**
      * Creates the assembler.
      *
      * @param instructions the preference instructions.
-     * @param windowSize how many trailing messages to send.
      */
-    public PromptAssembler(final Supplier<String> instructions, final IntSupplier windowSize) {
+    public PromptAssembler(final Supplier<String> instructions) {
         this.instructions = instructions;
-        this.windowSize = windowSize;
     }
 
     /**
-     * Builds the system message plus the visible history window.
+     * Builds the system message plus the messages still in the checkpoint.
      *
      * @param state the current thread state.
      * @param config the run config. Editor text is read from metadata.
      * @return the messages for this call.
      */
     public List<ChatMessage> build(final ChatState state, final RunnableConfig config) {
-        List<ChatMessage> history = state.messages();
-        int start = windowStart(history, state.summarizedCount(), windowSize.getAsInt());
         List<ChatMessage> prompt = new ArrayList<>();
         prompt.add(SystemMessage.from(systemText(state, config)));
-        prompt.addAll(history.subList(start, history.size()));
+        prompt.addAll(state.messages());
         return List.copyOf(prompt);
     }
 
     /**
-     * Joins instructions, editor context, and the reserved summary.
+     * Joins instructions, editor context, and the stored summary.
      *
      * @param state the current state.
      * @param config the run config.
@@ -99,52 +94,5 @@ public final class PromptAssembler {
             return null;
         }
         return value.toString();
-    }
-
-    /**
-     * Chooses the first history index included in the window.
-     *
-     * @param history the full history.
-     * @param summarizedCount messages already covered by the summary.
-     * @param window how many trailing messages to keep.
-     * @return the inclusive start index.
-     */
-    static int windowStart(final List<ChatMessage> history, final int summarizedCount, final int window) {
-        int size = history.size();
-        int fromTail = Math.max(0, size - Math.max(window, 0));
-        int start = Math.max(0, Math.max(summarizedCount, fromTail));
-        if (start > size) {
-            start = size;
-        }
-        return advance(history, start);
-    }
-
-    /**
-     * Moves the start forward past a tool result so a pair is not split.
-     * An AI tool request that is already inside the window stays put.
-     *
-     * @param history the full history.
-     * @param start the candidate index.
-     * @return the adjusted index.
-     */
-    private static int advance(final List<ChatMessage> history, final int start) {
-        int index = start;
-        while (index < history.size() && startsOnToolResult(history.get(index))) {
-            index++;
-        }
-        return index;
-    }
-
-    /**
-     * Returns whether this message is a tool result the window must not open on.
-     *
-     * @param message the candidate first message.
-     * @return {@code true} for a tool result.
-     */
-    private static boolean startsOnToolResult(final ChatMessage message) {
-        if (message instanceof ToolExecutionResultMessage) {
-            return true;
-        }
-        return false;
     }
 }

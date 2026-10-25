@@ -16,11 +16,11 @@ import com.developer.nefarious.zjoule.plugin.core.events.Initialization;
 import com.developer.nefarious.zjoule.plugin.core.events.PartListener;
 import com.developer.nefarious.zjoule.plugin.core.events.SelectionListener;
 import com.developer.nefarious.zjoule.plugin.core.functions.CancelHandler;
-import com.developer.nefarious.zjoule.plugin.core.functions.ClearHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LoginHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.LogoutHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.PreferencesHandler;
 import com.developer.nefarious.zjoule.plugin.core.functions.PromptHandler;
+import com.developer.nefarious.zjoule.plugin.core.functions.SessionsMenu;
 import com.developer.nefarious.zjoule.plugin.core.utils.SystemProvider;
 
 import jakarta.inject.Inject;
@@ -134,7 +134,7 @@ public class ViewListener extends ViewPart {
         IToolBarManager toolbar = getToolbar();
         toolbar.add(LoginHandler.create(shell, browser));
         IMenuManager menu = getMenu();
-        menu.add(ClearHandler.create(browser));
+        menu.add(new SessionsMenu(browser));
         menu.add(PreferencesHandler.create());
         menu.add(new Separator());
         menu.add(LogoutHandler.create(browser));

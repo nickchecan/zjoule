@@ -229,7 +229,7 @@ public class ChatSessionServiceTest {
         AtomicInteger calls = new AtomicInteger();
         AtomicInteger invalidated = new AtomicInteger();
         ChatRuntime runtime = new ChatRuntime(directory, retrying(calls, invalidated),
-                new PromptAssembler(() -> "instructions", () -> ChatTestSupport.WIDE_WINDOW),
+                new PromptAssembler(() -> "instructions"),
                 new ChatTestSupport.MemoryActive(), () -> ChatTestSupport.PROVIDER, () -> ChatTestSupport.MODEL,
                 Clock.systemUTC());
         String threadId = runtime.newSession().threadId();

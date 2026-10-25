@@ -128,4 +128,10 @@
 		</repository>
 	</repositories>
 
+	<profiles>
+		<profile>
+			<id>e2e</id>
+		</profile>
+	</profiles>
+
 </project>

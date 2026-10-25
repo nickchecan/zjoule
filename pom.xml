@@ -20,5 +20,14 @@
 		<module>com.developer.nefarious.zjoule.feature</module>
 		<module>com.developer.nefarious.zjoule.updatesite</module>
 	</modules>
-	
+
+	<profiles>
+		<profile>
+			<id>e2e</id>
+			<modules>
+				<module>com.developer.nefarious.zjoule.e2e</module>
+			</modules>
+		</profile>
+	</profiles>
+
 </project>

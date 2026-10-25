@@ -17,7 +17,8 @@ public interface ModelProvider {
     StreamingChatModel streaming();
 
     /**
-     * Returns the blocking model used by a later compact node.
+     * Returns the blocking model used by the compact node.
+     * It uses the same login, deployment, and model as {@link #streaming()}.
      *
      * @return the blocking model.
      * @throws IllegalStateException when the user is not logged in.
