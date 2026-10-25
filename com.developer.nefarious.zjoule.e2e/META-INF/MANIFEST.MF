@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: zjoule E2E Test Suite
+Bundle-SymbolicName: com.developer.nefarious.zjoule.e2e
+Bundle-Version: 1.0.0
+Require-Bundle: 
+ com.developer.nefarious.zjoule.plugin;bundle-version="1.0.0",
+ org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.swtbot.swt.finder;bundle-version="[4.4.0,4.5.0)",
+ org.eclipse.swtbot.eclipse.finder;bundle-version="[4.4.0,4.5.0)",
+ org.eclipse.swtbot.junit5_x;bundle-version="[4.4.0,4.5.0)",
+ junit-jupiter-api
+Bundle-Vendor: nickchecan
+Automatic-Module-Name: com.developer.nefarious.zjoule.e2e
+Bundle-RequiredExecutionEnvironment: JavaSE-21
